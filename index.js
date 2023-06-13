@@ -1,8 +1,10 @@
 const express = require("express");
 const {connection} = require("./database/connector");
 const cors = require("cors");
+const moment = require("moment")
 require("dotenv").config();
 const app = express();
+
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
 
