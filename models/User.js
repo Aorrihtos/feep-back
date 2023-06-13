@@ -1,6 +1,11 @@
 const {model, Schema} = require("mongoose");
 
 const UserSchema = Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    surname: String,
     username: {
         type: String,
         required: true,
@@ -14,25 +19,13 @@ const UserSchema = Schema({
         type: String,
         required: true
     },
-    followers: {
-        type: Schema.ObjectId,
-        ref: "User"
-    },
-    following: {
-        type: Schema.ObjectId,
-        ref: "User"
-    },
-    posts: {
-        type: Schema.ObjectId,
-        ref: "Post"
+    profile_pic: {
+        type: String,
+        default: "default_profile.jpg"
     },
     reward_points:{
         type: Number,
         default: 0
-    },
-    blocked_users: {
-        type: Schema.ObjectId,
-        ref: "User"
     },
     is_admin: {
         type: Boolean,

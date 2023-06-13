@@ -12,7 +12,6 @@ const register = async (req, res) =>{
     try{
         validateUser(data);
     }catch(err){
-        console.log(err)
         return res.status(400).json({
             status: "error",
             message: err.message
@@ -81,6 +80,29 @@ const login = (req, res) =>{
         })
 }
 
+const remove = (req, res) =>{
+    const id = req.user.id;
+    User.findByIdAndDelete(id).exec()
+        .then(user =>{
+            if(!user) return res.status(404).json({
+                status: "error",
+                message: "User not found"
+            });
+            // TODO: Remove comments, likes, posts and notifications
+            return res.status(200).json({
+                status: "success",
+                user_removed: cleanUser(user)
+            });
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
 function cleanUser(user){
     user = user.toObject();
     delete user.password;
@@ -90,5 +112,6 @@ function cleanUser(user){
 
 module.exports = {
     register,
-    login
+    login,
+    remove
 }

@@ -1,6 +1,20 @@
 const validator = require("validator");
 
 const validateUser = (user) =>{
+
+    let name = user.name
+        ? !validator.isEmpty(user.name)
+            && validator.isLength(user.name, {min: 3, max: 15})
+            && validator.isAlpha(user.name, "es-ES")
+        : false;
+    if(!name) throw new Error("Invalid name");
+
+    let surname = user.surname
+        ? !validator.isEmpty(user.surname)
+            && validator.isLength(user.surname, {min: 3, max: 50})
+        : true;
+    if(!surname) throw new Error("Invalid surname");
+
     let username = user.username
         ? !validator.isEmpty(user.username)
                 && validator.isLength(user.username, {min: 3, max: 15})
