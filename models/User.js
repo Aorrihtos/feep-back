@@ -26,7 +26,10 @@ const UserSchema = Schema({
         type: Schema.ObjectId,
         ref: "Post"
     },
-    reward_points: Number,
+    reward_points:{
+        type: Number,
+        default: 0
+    },
     blocked_users: {
         type: Schema.ObjectId,
         ref: "User"

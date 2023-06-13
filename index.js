@@ -1,7 +1,7 @@
 const express = require("express");
 const {connection} = require("./database/connector");
 const cors = require("cors");
-const moment = require("moment")
+const userRoutes = require("./routes/UserRoutes");
 require("dotenv").config();
 const app = express();
 
@@ -12,6 +12,10 @@ connection().then(r => console.log("Connected to Database!"));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cors());
+
+// Routes
+const API_BASEPATH = process.env.API_BASEPATH;
+app.use(`${API_BASEPATH}/user`, userRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
