@@ -23,7 +23,7 @@ const UserSchema = Schema({
         type: String,
         default: "default_profile_pic.jpg"
     },
-    reward_points:{
+    views:{
         type: Number,
         default: 0
     },

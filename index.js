@@ -5,6 +5,7 @@ const userRoutes = require("./routes/UserRoutes");
 const followRoutes = require("./routes/FollowRoutes");
 require("dotenv").config();
 const app = express();
+require("./services/rankService"); // CRONJOB
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -28,5 +29,6 @@ app.get("/", (req, res)=>{
 
 // Initialize the server
 app.listen(process.env.PORT, ()=>{
-    console.log(`Server listening on port ${process.env.PORT}`)
+    console.log(`Server listening on port ${process.env.PORT}`);
 })
+

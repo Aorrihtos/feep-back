@@ -225,7 +225,7 @@ const update = (req, res) =>{
 // Auth required
 const detail = (req, res) =>{
     const userId = req.params.id
-        ? parseInt(req.params.id)
+        ? req.params.id
         : req.user.id;
     User.findById(userId).exec()
         .then(async user => {
@@ -233,6 +233,13 @@ const detail = (req, res) =>{
                 status: "error",
                 message: "User not found"
             });
+            /* If the user is distinct from the logged one,
+            *  we increase its views counter*/
+            if(req.params.id && req.params.id !== req.user.id){
+                let views = ++user.views;
+                user = await User.findByIdAndUpdate(userId, {views}, {new: true})
+                    .exec();
+            }
             const followers = await Follow.find({followed_id: userId}).count();
             const following = await Follow.find({user_id: userId}).count();
             return res.status(200).json({
