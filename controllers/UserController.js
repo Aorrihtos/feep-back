@@ -190,6 +190,43 @@ const upload = (req, res) =>{
         })
 }
 
+// Update logged user info.
+// Auth required
+const update = (req, res) =>{
+    const data = req.body;
+    const id = req.user.id;
+    if(data.password){
+        data.password = bc.hashSync(data.password, SALT);
+    }
+    User.findByIdAndUpdate(id, data, {new: true}).exec()
+        .then(user =>{
+            if(!user) return res.status(404).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+            return res.status(200).json({
+                status: "success",
+                user
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
+// Get detail user by id. If id was not provided, the returned user will be the logged one.
+// Auth required
+const detail = (req, res) =>{
+    const userId = req.params.id
+        ? parseInt(req.params.id)
+        : req.user.id;
+
+}
+
 function cleanUser(user){
     user = user.toObject();
     delete user.password;
@@ -207,5 +244,6 @@ module.exports = {
     login,
     remove,
     getProfilePic,
-    upload
+    upload,
+    update
 }

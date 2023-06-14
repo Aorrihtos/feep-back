@@ -34,6 +34,14 @@ const validateUser = (user) =>{
     if(!email) throw new Error("Invalid email");
 }
 
+const cleanUser = (user) => {
+    user = user.toObject();
+    delete user.password;
+    delete user.__v;
+    return user;
+}
+
 module.exports = {
-    validateUser
+    validateUser,
+    cleanUser
 }

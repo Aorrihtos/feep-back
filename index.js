@@ -2,6 +2,7 @@ const express = require("express");
 const {connection} = require("./database/connector");
 const cors = require("cors");
 const userRoutes = require("./routes/UserRoutes");
+const followRoutes = require("./routes/FollowRoutes");
 require("dotenv").config();
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(cors());
 // Routes
 const API_BASEPATH = process.env.API_BASEPATH;
 app.use(`${API_BASEPATH}/user`, userRoutes);
+app.use(`${API_BASEPATH}/follow`, followRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{

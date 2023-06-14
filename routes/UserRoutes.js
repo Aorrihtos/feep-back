@@ -23,5 +23,6 @@ router.post("/login", UserController.login);
 router.delete("/remove", auth, UserController.remove);
 router.get("/profile-pic/:id?", auth, UserController.getProfilePic);
 router.post("/upload", [auth, uploads.single("file0")], UserController.upload);
+router.put("/update", auth, UserController.update);
 
 module.exports = router;
