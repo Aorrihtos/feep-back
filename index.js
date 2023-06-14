@@ -1,11 +1,14 @@
 const express = require("express");
 const {connection} = require("./database/connector");
 const cors = require("cors");
-const userRoutes = require("./routes/UserRoutes");
-const followRoutes = require("./routes/FollowRoutes");
 require("dotenv").config();
 const app = express();
 require("./services/rankService"); // CRONJOB
+
+// Importing Routes
+const userRoutes = require("./routes/UserRoutes");
+const followRoutes = require("./routes/FollowRoutes");
+const postRoutes = require("./routes/PostRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -19,6 +22,7 @@ app.use(cors());
 const API_BASEPATH = process.env.API_BASEPATH;
 app.use(`${API_BASEPATH}/user`, userRoutes);
 app.use(`${API_BASEPATH}/follow`, followRoutes);
+app.use(`${API_BASEPATH}/post`, postRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
