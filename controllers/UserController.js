@@ -1,13 +1,16 @@
 const User = require("../models/User");
+const Follow = require("../models/Follow");
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const {generateToken} = require("../services/jwt")
-const {validateUser} = require("../helpers/UserHelper");
+const {validateUser, cleanUser} = require("../helpers/UserHelper");
+require("mongoose-pagination");
 
 // ENV Variables
 require("dotenv").config();
 const SALT = parseInt(process.env.SALT);
+const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE);
 
 // Register method
 const register = async (req, res) =>{
@@ -224,14 +227,81 @@ const detail = (req, res) =>{
     const userId = req.params.id
         ? parseInt(req.params.id)
         : req.user.id;
-
+    // TODO: Implement method
 }
 
-function cleanUser(user){
-    user = user.toObject();
-    delete user.password;
-    delete user.__v;
-    return user;
+// Get followings of the user id in params. If id was not provided, the returned followings
+// belongs to the logged user. Auth required. Paginated.
+const following = (req, res) =>{
+    const userId = req.params.id
+        ? parseInt(req.params.id)
+        : req.user.id;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
+
+    Follow.find({user_id: userId})
+        .populate("user_id followed_id")
+        .sort({created_at: "descending"})
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async follows =>{
+            const total_items = await Follow.find({user_id: userId}).count().exec();
+            if(total_items > 0 ) follows = follows.map(f => cleanUser(f.followed_id))
+            return res.status(200).json({
+                status: "success",
+                following: follows,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total_items / ITEMS_PER_PAGE),
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        });
+}
+
+// Get followers of the user id in params. If id was not provided, the returned followers
+// belongs to the logged user. Auth required. Paginated.
+const followers = (req, res) =>{
+    const userId = req.params.id
+        ? parseInt(req.params.id)
+        : req.user.id;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
+
+    Follow.find({followed_id: userId})
+        .populate("user_id followed_id")
+        .sort({created_at: "descending"})
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async follows =>{
+            const total_items = await Follow.find({followed_id: userId}).count().exec();
+            if(total_items > 0 ) follows = follows.map(f => cleanUser(f.user_id))
+            return res.status(200).json({
+                status: "success",
+                followers: follows,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total_items / ITEMS_PER_PAGE),
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        });
 }
 
 function validateExtension(ext){
@@ -245,5 +315,7 @@ module.exports = {
     remove,
     getProfilePic,
     upload,
-    update
+    update,
+    following,
+    followers
 }
