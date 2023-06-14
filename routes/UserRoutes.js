@@ -26,5 +26,6 @@ router.post("/upload", [auth, uploads.single("file0")], UserController.upload);
 router.put("/update", auth, UserController.update);
 router.get("/following/:id?", auth, UserController.following);
 router.get("/followers/:id?", auth, UserController.followers);
+router.get("/detail/:id?", auth, UserController.detail);
 
 module.exports = router;

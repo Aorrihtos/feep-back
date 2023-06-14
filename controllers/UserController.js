@@ -227,7 +227,32 @@ const detail = (req, res) =>{
     const userId = req.params.id
         ? parseInt(req.params.id)
         : req.user.id;
-    // TODO: Implement method
+    User.findById(userId).exec()
+        .then(async user => {
+            if(!user) return res.status(404).json({
+                status: "error",
+                message: "User not found"
+            });
+            const followers = await Follow.find({followed_id: userId}).count();
+            const following = await Follow.find({user_id: userId}).count();
+            return res.status(200).json({
+                status: "success",
+                user: {
+                    data: cleanUser(user),
+                    follow_counter: {
+                        followers,
+                        following
+                    }
+                }
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
 }
 
 // Get followings of the user id in params. If id was not provided, the returned followings
@@ -317,5 +342,6 @@ module.exports = {
     upload,
     update,
     following,
-    followers
+    followers,
+    detail
 }
