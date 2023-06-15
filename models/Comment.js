@@ -11,6 +11,10 @@ const CommentSchema = Schema({
         ref: "Post",
         required: true
     },
+    content: {
+        type: String,
+        required: true
+    },
     created_at: {
         type: Date,
         default: Date.now()
