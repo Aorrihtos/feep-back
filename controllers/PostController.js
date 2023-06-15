@@ -1,13 +1,16 @@
 const Post = require("../models/Post");
-
+const fs = require("fs");
 const upload = (req, res) =>{
     const userId = req.user.id;
     const data = req.body;
-    if(!data) return res.status(400).json({
+    if(!data.content) return res.status(400).json({
         status: "error",
         message: "No content was provided"
     });
-    const post = new Post({user_id: userId, content: data.content});
+    const attached_file = req.file
+        ? req.file.filename
+        : null;
+    const post = new Post({user_id: userId, content: data.content, attached_file});
     post.save().then(post =>{
         return res.status(200).json({
             status: "success",
@@ -33,6 +36,14 @@ const remove = async (req, res) =>{
     })
     Post.findByIdAndDelete(id).exec()
         .then(post =>{
+            if(post.attached_file != null){
+                const path = "./uploads/posts/" + post.attached_file;
+                try {
+                    fs.unlinkSync(path);
+                }catch (err){
+                    console.log(err);
+                }
+            }
             return res.status(200).json({
                 status: "success",
                 post_deleted: post

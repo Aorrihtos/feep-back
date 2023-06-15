@@ -24,6 +24,7 @@ const validateUser = (user) =>{
 
     let password = user.password
         ? !validator.isEmpty(user.password)
+            && validator.isLength(user.password, {min: 3, max: 15})
         : false;
     if(!password) throw new Error("Password cannot be empty");
 
