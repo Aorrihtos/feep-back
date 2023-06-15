@@ -1,5 +1,8 @@
 const User = require("../models/User");
 const Follow = require("../models/Follow");
+const Post = require("../models/Post");
+const Like = require("../models/Like");
+const Comment = require("../models/Comment");
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
@@ -336,6 +339,51 @@ const followers = (req, res) =>{
         });
 }
 
+const getPosts = (req, res) =>{
+    const userId = req.params.id
+        ? req.params.id
+        : req.user.id;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
+
+    Post.find({user_id: userId})
+        .sort("created_at")
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async posts =>{
+            const total_items = await Post.find({user_id: userId}).count();
+            const total_pages = Math.ceil(total_items / ITEMS_PER_PAGE);
+            // Gets the likes and comment counter for each post
+            for (const post of posts) {
+                const index = posts.indexOf(post);
+                let [like_counter, comment_counter] = await Promise.all([
+                    Like.find({post_id: post._id}).count(),
+                    Comment.find({post_id: post._id}).count()
+                ]);
+                posts[index] = post.toObject();
+                posts[index].likes = like_counter;
+                posts[index].comments = comment_counter;
+            }
+            return res.status(200).json({
+                status: "success",
+                posts,
+                pagination: {
+                    page,
+                    total_pages,
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -350,5 +398,6 @@ module.exports = {
     update,
     following,
     followers,
-    detail
+    detail,
+    getPosts
 }

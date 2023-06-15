@@ -1,12 +1,12 @@
-const {Schema, model} = require("express");
+const {Schema, model} = require("mongoose");
 
 const LikeSchema = Schema({
     user_id: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User"
     },
     post_id: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Post"
     },
     created_at: {

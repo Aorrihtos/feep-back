@@ -1,13 +1,13 @@
-const {Schema, model} = require("express");
+const {Schema, model} = require("mongoose");
 
 const CommentSchema = Schema({
     user_id: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
     post_id: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Post",
         required: true
     },
