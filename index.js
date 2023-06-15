@@ -9,6 +9,7 @@ require("./services/rankService"); // CRONJOB
 const userRoutes = require("./routes/UserRoutes");
 const followRoutes = require("./routes/FollowRoutes");
 const postRoutes = require("./routes/PostRoutes");
+const likeRoutes = require("./routes/LikeRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -23,6 +24,7 @@ const API_BASEPATH = process.env.API_BASEPATH;
 app.use(`${API_BASEPATH}/user`, userRoutes);
 app.use(`${API_BASEPATH}/follow`, followRoutes);
 app.use(`${API_BASEPATH}/post`, postRoutes);
+app.use(`${API_BASEPATH}/like`, likeRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{

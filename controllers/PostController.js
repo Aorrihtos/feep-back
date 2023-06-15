@@ -1,4 +1,6 @@
 const Post = require("../models/Post");
+const Like =  require("../models/Like");
+const Comment =  require("../models/Comment");
 const fs = require("fs");
 const upload = (req, res) =>{
     const userId = req.user.id;
@@ -58,7 +60,38 @@ const remove = async (req, res) =>{
         })
 }
 
+const detail = (req, res) => {
+    const id = req.params.id;
+    Post.findById(id)
+        .populate("user_id", "-password -is_admin -__v")
+        .exec()
+        .then(async post =>{
+            if(!post) return res.status(404).json({
+                status: "error",
+                message: "Post not found"
+            });
+            const [likes, comments] = await Promise.all([
+                Like.find({post_id: post._id}).count(),
+                Comment.find({post_id: post._id}).sort("-created_at").exec()
+            ]);
+            return res.status(200).json({
+                status: "error",
+                post,
+                likes,
+                comments
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
 module.exports = {
     upload,
-    remove
+    remove,
+    detail
 }
