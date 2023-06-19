@@ -84,7 +84,6 @@ const detail = (req, res) => {
             const blocked_array = (await Block.find({user_id: req.user.id})
                 .select({blocked_id: 1, _id: 0})
                 .exec()).map(object => object.blocked_id);
-            console.log(blocked_array);
             const [likes, comments, total_items] = await Promise.all([
                 Like.find({post_id: post._id}).count(),
                 Comment.find({post_id: post._id, user_id: {$nin: blocked_array}})

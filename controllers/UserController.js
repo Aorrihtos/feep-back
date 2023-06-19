@@ -407,6 +407,28 @@ const getPosts = async (req, res) =>{
         })
 }
 
+const blocked = (req, res) =>{
+    const id = req.user.id;
+    // TODO: Check if pagination it's necessary
+    Block.find({user_id: id})
+        .select("-user_id -__v")
+        .populate("blocked_id", "-user_id -__v -password -is_admin -views")
+        .exec()
+        .then(blocks =>{
+            return res.status(200).json({
+                status: "success",
+                blocked: blocks
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -422,5 +444,6 @@ module.exports = {
     following,
     followers,
     detail,
-    getPosts
+    getPosts,
+    blocked
 }
