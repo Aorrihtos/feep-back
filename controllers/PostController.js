@@ -1,7 +1,13 @@
 const Post = require("../models/Post");
 const Like =  require("../models/Like");
 const Comment =  require("../models/Comment");
+require("mongoose-pagination");
+require("dotenv").config();
 const fs = require("fs");
+
+// ENV Variables
+const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
+
 const upload = (req, res) =>{
     const userId = req.user.id;
     const data = req.body;
@@ -62,23 +68,39 @@ const remove = async (req, res) =>{
 
 const detail = (req, res) => {
     const id = req.params.id;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
     Post.findById(id)
-        .populate("user_id", "-password -is_admin -__v")
+        .select("-__v")
+        .populate("user_id", "-password -is_admin -__v -views")
         .exec()
         .then(async post =>{
             if(!post) return res.status(404).json({
                 status: "error",
                 message: "Post not found"
             });
-            const [likes, comments] = await Promise.all([
+            const [likes, comments, total_items] = await Promise.all([
                 Like.find({post_id: post._id}).count(),
-                Comment.find({post_id: post._id}).sort("-created_at").exec()
+                Comment.find({post_id: post._id})
+                    .select("-post_id -__v")
+                    .sort("-created_at")
+                    .paginate(page, ITEMS_PER_PAGE)
+                    .populate("user_id", "username profile_pic")
+                    .exec(),
+                Comment.find({post_id: post._id}).count()
             ]);
             return res.status(200).json({
-                status: "error",
+                status: "success",
                 post,
                 likes,
-                comments
+                comments,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total_items/ITEMS_PER_PAGE),
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
             })
         })
         .catch(err =>{
