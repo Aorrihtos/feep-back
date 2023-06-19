@@ -1,6 +1,17 @@
 const Block = require("../models/Block");
 
-const add = (req, res) => {
+const add = async (req, res) => {
+    // Checks if block already exists
+    const exists = await Block.findOne({
+        user_id: req.user.id,
+        blocked_id: req.params.blockedId
+    }).exec();
+    if(exists) return res.status(400).json({
+        status: "error",
+        message: "You already have blocked this user"
+    })
+
+    // Builds the new block and persists
     const data = {
         user_id: req.user.id,
         blocked_id: req.params.blockedId
@@ -30,7 +41,7 @@ const pardon = (req, res) => {
                 status: "error",
                 message: "Block not found"
             });
-            await block.deleteOne().exec();
+            await block.deleteOne();
             return res.status(200).json({
                 status: "success",
                 block_deleted: block
