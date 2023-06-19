@@ -29,5 +29,6 @@ router.get("/followers/:id?", auth, UserController.followers);
 router.post("/detail/:id?", auth, UserController.detail);
 router.get("/:id?/posts", auth, UserController.getPosts);
 router.get("/blocks", auth, UserController.blocked);
+router.get("/feed", auth, UserController.feed);
 
 module.exports = router;

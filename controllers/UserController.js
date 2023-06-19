@@ -429,6 +429,55 @@ const blocked = (req, res) =>{
         })
 }
 
+const feed = async (req, res) =>{
+    const id = req.user.id;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
+    const blocked_ids = (await Block.find({user_id: id}).exec()).map(b => b.blocked_id)
+    const follow_ids = (await Follow.find({user_id: id, followed_id: {$nin: blocked_ids}}).exec())
+        .map(f => f.followed_id);
+
+    Post.find({user_id: follow_ids})
+        .select("-__v")
+        .populate("user_id", "-password -email -is_admin -__v -views")
+        .sort("-created_at")
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async feed =>{
+
+            for (const post of feed) {
+                const index = feed.indexOf(post);
+                let [like_counter, comment_counter] = await Promise.all([
+                    Like.find({post_id: post._id}).count(),
+                    Comment.find({post_id: post._id}).count()
+                ]);
+                feed[index] = post.toObject();
+                feed[index].likes = like_counter;
+                feed[index].comments = comment_counter;
+            }
+
+            const total_items = await Post.find({user_id: follow_ids}).count();
+            const total_pages = Math.ceil(total_items/ITEMS_PER_PAGE);
+            return res.status(200).json({
+                status: "success",
+                feed,
+                pagination: {
+                    page,
+                    total_pages,
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        })
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -445,5 +494,6 @@ module.exports = {
     followers,
     detail,
     getPosts,
-    blocked
+    blocked,
+    feed
 }
