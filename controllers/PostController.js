@@ -1,6 +1,7 @@
 const Post = require("../models/Post");
 const Like =  require("../models/Like");
 const Comment =  require("../models/Comment");
+const Block = require("../models/Block");
 require("mongoose-pagination");
 require("dotenv").config();
 const fs = require("fs");
@@ -80,15 +81,19 @@ const detail = (req, res) => {
                 status: "error",
                 message: "Post not found"
             });
+            const blocked_array = (await Block.find({user_id: req.user.id})
+                .select({blocked_id: 1, _id: 0})
+                .exec()).map(object => object.blocked_id);
+            console.log(blocked_array);
             const [likes, comments, total_items] = await Promise.all([
                 Like.find({post_id: post._id}).count(),
-                Comment.find({post_id: post._id})
+                Comment.find({post_id: post._id, user_id: {$nin: blocked_array}})
                     .select("-post_id -__v")
                     .sort("-created_at")
                     .paginate(page, ITEMS_PER_PAGE)
                     .populate("user_id", "username profile_pic")
                     .exec(),
-                Comment.find({post_id: post._id}).count()
+                Comment.find({post_id: post._id, user_id: {$nin: blocked_array}}).count()
             ]);
             return res.status(200).json({
                 status: "success",

@@ -3,6 +3,7 @@ const Follow = require("../models/Follow");
 const Post = require("../models/Post");
 const Like = require("../models/Like");
 const Comment = require("../models/Comment");
+const Block = require("../models/Block")
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
@@ -244,8 +245,16 @@ const detail = (req, res) =>{
                 message: "User not found"
             });
             /* If the user is distinct from the logged one,
-            *  we increase its views counter*/
+            * we check if its in block list, if none,
+            * we increase its views counter*/
             if(req.params.id && req.params.id !== req.user.id){
+                // Check if is in block list
+                const blocked = await Block.findOne({user_id: userId, blocked_id: req.user.id}).exec();
+                if(blocked) return res.status(403).json({
+                    status: "error",
+                    message: "You have been blocked by this user"
+                });
+                // Increase view counter
                 let views = ++user.views;
                 user = await User.findByIdAndUpdate(userId, {views}, {new: true})
                     .exec();
@@ -346,13 +355,20 @@ const followers = (req, res) =>{
         });
 }
 
-const getPosts = (req, res) =>{
+const getPosts = async (req, res) =>{
     const userId = req.params.id
         ? req.params.id
         : req.user.id;
     const page = req.query.page
         ? parseInt(req.query.page)
         : 1;
+
+    // Check if is in block list
+    const blocked = await Block.findOne({user_id: userId, blocked_id: req.user.id}).exec();
+    if(blocked) return res.status(403).json({
+        status: "error",
+        message: "You have been blocked by this user"
+    });
 
     Post.find({user_id: userId})
         .sort("created_at")
