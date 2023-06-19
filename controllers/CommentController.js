@@ -63,7 +63,71 @@ const remove = (req, res) =>{
         })
 }
 
+const like = (req, res) => {
+    const id = req.params.id;
+    Comment.findById(id).exec()
+        .then(async comment => {
+            if(!comment) return res.status(404).json({
+                status: "error",
+                message: "Comment not found"
+            });
+            try{
+                await comment.updateOne({likes: ++comment.likes});
+            } catch (err){
+                console.log(err);
+                return res.status(500).json({
+                    status: "error",
+                    message: "Internal Server Error"
+                });
+            }
+            return res.status(200).json({
+                status: "success",
+                comment
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        })
+}
+
+const unlike = (req, res) => {
+    const id = req.params.id;
+    Comment.findById(id).exec()
+        .then(async comment => {
+            if(!comment) return res.status(404).json({
+                status: "error",
+                message: "Comment not found"
+            });
+            try{
+                await comment.updateOne({likes: --comment.likes});
+            } catch (err){
+                console.log(err);
+                return res.status(500).json({
+                    status: "error",
+                    message: "Internal Server Error"
+                });
+            }
+            return res.status(200).json({
+                status: "success",
+                comment
+            })
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        })
+}
+
 module.exports = {
     send,
-    remove
+    remove,
+    like,
+    unlike
 }
