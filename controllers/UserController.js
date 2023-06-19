@@ -95,12 +95,19 @@ const login = (req, res) =>{
 const remove = (req, res) =>{
     const id = req.user.id;
     User.findByIdAndDelete(id).exec()
-        .then(user =>{
+        .then(async user =>{
             if(!user) return res.status(404).json({
                 status: "error",
                 message: "User not found"
             });
-            // TODO: Remove comments, likes, posts, follows, blocks and notifications
+            // TODO: Remove blocks and notifications
+            await Promise.all([
+                Comment.find({user_id: user._id}).deleteMany().exec(),
+                Like.find({user_id: user._id}).deleteMany().exec(),
+                Post.find({user_id: user._id}).deleteMany().exec(),
+                Follow.find({user_id: user._id}).deleteMany().exec(),
+                Follow.find({followed_id: user._id}).deleteMany().exec(),
+            ])
             return res.status(200).json({
                 status: "success",
                 user_removed: cleanUser(user)
