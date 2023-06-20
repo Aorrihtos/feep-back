@@ -1,24 +1,32 @@
 const schedule = require('node-schedule');
-const User = require("../models/User");
 const Post = require("../models/Post");
+const Rank = require("../models/Rank");
 /*
 * Checks once a day if any user didn't make any post
 * and resets its multiplier rank points bonus
 * */
 const setBonus = schedule.scheduleJob('0 0 * * *', async function(){
-    // TODO
     let date = new Date(Date.now());
     date.setDate(date.getDate()-1);
-    date = date.toISOString().split("T").shift();
-    console.log(date);
-    const daily_post = await Post.find({user_id: users_ids})
+    date = new Date(date.toISOString().split("T").shift());
+    const daily_post = await Post.find({created_at: {$gte: date}}).distinct("user_id").exec();
+    try{
+        const resets = await Rank.updateMany({user_id: {$nin: daily_post}},{multiplier: 1.0});
+        console.log(`Number of users resetted: ${resets.modifiedCount}`);
+    } catch(err){
+        throw new Error(err);
+    }
 });
 
 /*
 * Resets the rank points to 0 for all users monthly
 * */
-const monthlyClean = schedule.scheduleJob('0 0 1 * *', function(){
-    // TODO
-    console.log('PRUEBA');
+const monthlyClean = schedule.scheduleJob('0 0 1 * *', async function(){
+    try {
+        await Rank.updateMany(null, {multiplier: 1.0, points: 0});
+        console.log("Ranks and points restored to init values")
+    } catch(err){
+        throw new Error(err);
+    }
 });
 

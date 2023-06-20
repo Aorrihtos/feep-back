@@ -3,7 +3,8 @@ const Follow = require("../models/Follow");
 const Post = require("../models/Post");
 const Like = require("../models/Like");
 const Comment = require("../models/Comment");
-const Block = require("../models/Block")
+const Block = require("../models/Block");
+const Rank = require("../models/Rank");
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
@@ -38,7 +39,10 @@ const register = async (req, res) =>{
     data.password = bc.hashSync(data.password, SALT);
     const newUser = new User(data);
     newUser.save()
-        .then(user =>{
+        .then(async user =>{
+            // We also create his register in rank collection
+            const rank = new Rank({user_id: user._id});
+            await rank.save();
             return res.status(200).json({
                 status: "success",
                 user: cleanUser(user)
@@ -259,8 +263,11 @@ const detail = (req, res) =>{
                 user = await User.findByIdAndUpdate(userId, {views}, {new: true})
                     .exec();
             }
-            const followers = await Follow.find({followed_id: userId}).count();
-            const following = await Follow.find({user_id: userId}).count();
+            const [followers, following, rank_points] = await Promise.all([
+                Follow.find({followed_id: userId}).count(),
+                Follow.find({user_id: userId}).count(),
+                (await Rank.findOne({user_id: userId})).points
+            ]);
             return res.status(200).json({
                 status: "success",
                 user: {
@@ -268,7 +275,8 @@ const detail = (req, res) =>{
                     follow_counter: {
                         followers,
                         following
-                    }
+                    },
+                    rank_points
                 }
             })
         })
