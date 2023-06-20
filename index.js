@@ -12,6 +12,7 @@ const postRoutes = require("./routes/PostRoutes");
 const likeRoutes = require("./routes/LikeRoutes");
 const commentRoutes = require("./routes/CommentRoutes");
 const blockRoutes = require("./routes/BlockRoutes");
+const rankRoutes = require("./routes/RankRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -29,6 +30,7 @@ app.use(`${API_BASEPATH}/post`, postRoutes);
 app.use(`${API_BASEPATH}/like`, likeRoutes);
 app.use(`${API_BASEPATH}/comment`, commentRoutes);
 app.use(`${API_BASEPATH}/block`, blockRoutes);
+app.use(`${API_BASEPATH}/rank`, rankRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
