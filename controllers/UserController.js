@@ -486,6 +486,32 @@ const feed = async (req, res) =>{
         })
 }
 
+const searcher = (req, res)=>{
+    const search = req.query.user;
+    User.find({$or:[
+            {username: {$regex: '.*' + search + '.*'}},
+            {name: {$regex: '.*' + search + '.*'}},
+            {surname: {$regex: '.*' + search + '.*'}}
+        ]})
+        .select("-password -email -is_admin -__v -views")
+        .sort("-views created_at")
+        .limit(10) // Temporally limited, most likely to be paginated
+        .exec()
+        .then(users =>{
+            return res.status(200).json({
+                status: "success",
+                users
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        })
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -503,5 +529,6 @@ module.exports = {
     detail,
     getPosts,
     blocked,
-    feed
+    feed,
+    searcher
 }
