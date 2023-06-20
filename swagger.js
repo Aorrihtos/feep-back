@@ -6,7 +6,16 @@ const options = {
         openapi: "3.0.0",
         info: { title: 'FEEP API', version: '1.0.0'}
     },
-    apis: ['index.js', 'database/connector.js']
+    apis: [
+        'routes/BlockRoutes.js',
+        'routes/CommentRoutes.js',
+        'routes/FollowRoutes.js',
+        'routes/LikeRoutes.js',
+        'routes/PostRoutes.js',
+        'routes/RankRoutes.js',
+        'routes/UserRoutes.js',
+        'database/connector.js'
+    ]
 };
 
 // Docs en JSON format
