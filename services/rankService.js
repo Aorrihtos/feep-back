@@ -16,6 +16,10 @@ const setBonus = schedule.scheduleJob('0 0 * * *', async function(){
     } catch(err){
         throw new Error(err);
     }
+
+    // Calculates the bonus points for today
+    process.env.POINTS = Math.round(Math.random()*300);
+    console.log(`Bonus points for ${new Date(Date.now())}: ${process.env.POINTS}`);
 });
 
 /*
