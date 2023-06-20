@@ -4,7 +4,8 @@
   "description": "Backend for FEEP, the first gamified social network. Developed in NodeJS.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -35,6 +36,7 @@
     "mongoose": "^7.2.4",
     "mongoose-pagination": "^1.0.0",
     "multer": "^1.4.5-lts.1",
+    "node-schedule": "^2.1.1",
     "validator": "^13.9.0"
   }
 }
