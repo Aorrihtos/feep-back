@@ -2,6 +2,7 @@ const Post = require("../models/Post");
 const Like =  require("../models/Like");
 const Comment =  require("../models/Comment");
 const Block = require("../models/Block");
+const Rank = require("../models/Rank");
 require("mongoose-pagination");
 require("dotenv").config();
 const fs = require("fs");
@@ -20,11 +21,24 @@ const upload = (req, res) =>{
         ? req.file.filename
         : null;
     const post = new Post({user_id: userId, content: data.content, attached_file});
-    post.save().then(post =>{
-        return res.status(200).json({
+    post.save().then(async post =>{
+        let json = {
             status: "success",
             post
-        })
+        }
+        // Check if first post to give rank bonus points
+        const firstPost = await Rank.updateOne({user_id: userId}, {reclaimed: true}).exec();
+        if(firstPost.modifiedCount > 0){
+            const rank = await Rank.findOne({user_id: userId});
+            const reward = Math.round((process.env.POINTS * rank.multiplier));
+            const update = await Rank.findOneAndUpdate({user_id: userId}, {
+                points: (rank.points + reward), // Updating the points
+                multiplier: parseFloat(rank.multiplier) + (Math.random()*0.5+0.1) // Increasing the multiplier
+            }, {new: true});
+            json.reward = reward;
+            json.actual_points = update.points;
+        }
+        return res.status(200).json({json})
     })
     .catch(err =>{
         console.log(err);

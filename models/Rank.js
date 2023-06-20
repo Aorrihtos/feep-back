@@ -13,6 +13,10 @@ const RankSchema = Schema({
     points: {
         type: Number,
         default: 0
+    },
+    reclaimed: {
+        type: Boolean,
+        default: false
     }
 });
 
