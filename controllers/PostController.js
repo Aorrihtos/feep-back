@@ -33,7 +33,7 @@ const upload = (req, res) =>{
             const reward = Math.round((process.env.POINTS * rank.multiplier));
             const update = await Rank.findOneAndUpdate({user_id: userId}, {
                 points: (rank.points + reward), // Updating the points
-                multiplier: parseFloat(rank.multiplier) + (Math.random()*0.5+0.1) // Increasing the multiplier
+                multiplier: parseFloat(rank.multiplier) + (Math.random()*0.3+0.1) // Increasing the multiplier
             }, {new: true});
             json.reward = reward;
             json.actual_points = update.points;
