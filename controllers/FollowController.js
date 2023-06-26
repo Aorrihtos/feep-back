@@ -4,7 +4,7 @@ const {cleanUser} = require("../helpers/UserHelper");
 const follow = async (req, res) => {
     const follow = new Follow({
         user_id: req.user.id,
-        followed_id: req.params.id
+        followed_id: req.params.userId
     });
     // Check if we already follow the user
     const exist = await Follow.findOne({
@@ -18,12 +18,12 @@ const follow = async (req, res) => {
     // Save the new follow
     follow.save()
         .then(async follow =>{
-            const followDetailed = await follow.populate("user_id followed_id");
-            followDetailed.user_id = cleanUser(followDetailed.user_id);
-            followDetailed.followed_id = cleanUser(followDetailed.followed_id);
+            //const followDetailed = await follow.populate("user_id followed_id");
+            //followDetailed.user_id = cleanUser(followDetailed.user_id);
+            //followDetailed.followed_id = cleanUser(followDetailed.followed_id);
             return res.status(200).json({
                 status: "success",
-                follow: followDetailed
+                follow
             })
         })
         .catch(err =>{
@@ -37,7 +37,7 @@ const follow = async (req, res) => {
 
 const unfollow = (req, res) =>{
     const userId = req.user.id;
-    const unfollowedId = req.params.id;
+    const unfollowedId = req.params.userId;
     Follow.findOneAndDelete({user_id: userId, followed_id: unfollowedId}).exec()
         .then(follow =>{
             if(!follow) return res.status(404).json({

@@ -3,7 +3,7 @@ const Like = require("../models/Like");
 const like = (req,res) => {
     const data = {
         user_id: req.user.id,
-        post_id: req.params.id
+        post_id: req.params.postId
     }
     const like = new Like(data);
     like.save().then(like =>{
@@ -24,7 +24,7 @@ const like = (req,res) => {
 const unlike = (req, res) =>{
     const data = {
         user_id: req.user.id,
-        post_id: req.params.id
+        post_id: req.params.postId
     }
     Like.findOne(data).exec()
         .then(async like => {
@@ -37,7 +37,7 @@ const unlike = (req, res) =>{
             await like.deleteOne();
             return res.status(200).json({
                 status: "success",
-                like_removed: like
+                like_deleted: like
             })
         })
         .catch(err => {
