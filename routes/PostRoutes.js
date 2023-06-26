@@ -236,9 +236,9 @@ router.delete("/remove/:id", auth, PostController.remove);
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/CommentWithUserInfo'
- *                   pagination:
- *                     type: object
- *                     $ref: '#/components/schemas/Pagination'
+ *                 pagination:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Pagination'
  *       404:
  *         description: Client Error
  *         content:

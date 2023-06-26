@@ -74,7 +74,7 @@ const login = (req, res) =>{
                 message: "User not found"
             });
             if(!bc.compareSync(data.password, user.password)){
-                return res.status(400).json({
+                return res.status(404).json({
                     status: "error",
                     message: "Invalid username or password"
                 })
@@ -220,11 +220,11 @@ const update = (req, res) =>{
         .then(user =>{
             if(!user) return res.status(404).json({
                 status: "error",
-                message: "Internal Server Error"
+                message: "User not found"
             });
             return res.status(200).json({
                 status: "success",
-                user
+                user: cleanUser(user)
             })
         })
         .catch(err =>{
@@ -300,11 +300,12 @@ const following = (req, res) =>{
         : 1;
 
     Follow.find({user_id: userId})
-        .populate("user_id followed_id")
+        .populate("followed_id")
         .sort({created_at: "descending"})
         .paginate(page, ITEMS_PER_PAGE)
         .then(async follows =>{
             const total_items = await Follow.find({user_id: userId}).count().exec();
+            console.log(follows)
             if(total_items > 0 ) follows = follows.map(f => cleanUser(f.followed_id))
             return res.status(200).json({
                 status: "success",

@@ -30,6 +30,7 @@ const router = express.Router();
  *           type: string
  *           description: Mongo document id
  *           example: 64918602143b41c789e2eddf
+ *
  */
 
 /**
