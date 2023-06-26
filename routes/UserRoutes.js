@@ -470,7 +470,7 @@ router.put("/update", auth, UserController.update);
 
 /**
  * @openapi
- * /api/v1/user/following:
+ * /api/v1/user/following/{id}:
  *   get:
  *     tags:
  *       - Users
@@ -482,7 +482,7 @@ router.put("/update", auth, UserController.update);
  *         description: ObjectId of the user to retrieve its following list
  *         required: false
  *       - name: page
- *         in: path
+ *         in: query
  *         description: Number of page to retrieve
  *         required: false
  *     responses:
@@ -513,8 +513,183 @@ router.put("/update", auth, UserController.update);
  */
 router.get("/following/:id?", auth, UserController.following);
 
+/**
+ * @openapi
+ * /api/v1/user/followers/{id}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Retrieves the followers
+ *     description: Retrieves a list with the users that follows one user (The logged one by default)
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ObjectId of the user to retrieve its followers list
+ *         required: false
+ *       - name: page
+ *         in: query
+ *         description: Number of page to retrieve
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 followers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CleanedUser'
+ *                 pagination:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/followers/:id?", auth, UserController.followers);
+
+/**
+ * @openapi
+ * /api/v1/user/detail/{id}:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Get the user info detailed
+ *     description: Get the user info detailed (The logged one by default)
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ObjectId of the user to retrieve
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       $ref: '#/components/schemas/CleanedUser'
+ *                     follow_counter:
+ *                       type: object
+ *                       properties:
+ *                         followers:
+ *                           type: Number
+ *                           example: 50
+ *                         following:
+ *                           type: Number
+ *                           example: 70
+ *                     rank_points:
+ *                       type: Number
+ *                       example: 7500
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: You have been blocked by this user
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.post("/detail/:id?", auth, UserController.detail);
+
+/**
+ * @openapi
+ * /api/v1/user/{id}/posts:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get the user posts
+ *     description: Get the user posts, ordered descending by creation date (The logged one by default)
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: ObjectId of the user
+ *         required: false
+ *       - name: page
+ *         in: query
+ *         description: ObjectId of the user to retrieve
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       $ref: '#/components/schemas/CleanedUser'
+ *                     follow_counter:
+ *                       type: object
+ *                       properties:
+ *                         followers:
+ *                           type: Number
+ *                           example: 50
+ *                         following:
+ *                           type: Number
+ *                           example: 70
+ *                     rank_points:
+ *                       type: Number
+ *                       example: 7500
+ *       403:
+ *         description: Forbidden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: You have been blocked by this user
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/:id?/posts", auth, UserController.getPosts);
 router.get("/blocks", auth, UserController.blocked);
 router.get("/feed", auth, UserController.feed);

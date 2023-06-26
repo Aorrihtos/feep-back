@@ -380,6 +380,7 @@ const getPosts = async (req, res) =>{
     });
 
     Post.find({user_id: userId})
+        .select("-__v")
         .sort("created_at")
         .paginate(page, ITEMS_PER_PAGE)
         .then(async posts =>{
