@@ -45,6 +45,44 @@ const upload = multer({storage}).single("file0")
  *           type: string
  *           description: Mongo document id
  *           example: 64918602143b41c789e2eddf
+ *     PostWithUserInfo:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Mongo document id
+ *           example: 64918602143b41c789e2eddf
+ *         user_id:
+ *           type: object
+ *           $ref: '#/components/schemas/User'
+ *         content:
+ *           type: String
+ *           description: Text content of the post
+ *           example: Hello world on feep!
+ *         attached_file:
+ *           type: String
+ *           description: Name and extension of the attached file. It can be null.
+ *           example: vacations-aorih.png
+ *         created_at:
+ *           type: string
+ *           format: date
+ *           description: Datetime when the post is published
+ *           example: 2023-06-20T10:56:29.337Z
+ *     Pagination:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: Number
+ *           example: 1
+ *         total_pages:
+ *           type: Number
+ *           example: 2
+ *         total_items:
+ *           type: Number
+ *           example: 14
+ *         items_per_page:
+ *           type: Number
+ *           example: 10
  */
 
 /**
@@ -111,7 +149,117 @@ const upload = multer({storage}).single("file0")
  *               $ref: '#/components/schemas/500Error'
  */
 router.post("/upload", [auth,upload], PostController.upload);
+
+/**
+ * @openapi
+ * /api/v1/post/remove/{id}:
+ *   delete:
+ *     tags:
+ *       - Posts
+ *     summary: Delete a post
+ *     description: Delete a post previously published as the logged user
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ObjectId of the post to delete
+ *         required: true
+ *         example: 64899374a4ee197dcc5c63f7
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 post_deleted:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Post'
+ *       400:
+ *         description: Client Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Post not found / You're not the author of the post
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.delete("/remove/:id", auth, PostController.remove);
+
+/**
+ * @openapi
+ * /api/v1/post/detail/{id}:
+ *   get:
+ *     tags:
+ *       - Posts
+ *     summary: Get detail of a post
+ *     description: Get detail of a post published by any user
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ObjectId of the post to get detail
+ *         required: true
+ *         example: 64899374a4ee197dcc5c63f7
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 post:
+ *                   type: object
+ *                   $ref: '#/components/schemas/PostWithUserInfo'
+ *                 likes:
+ *                   type: Number
+ *                   example: 7
+ *                 comments:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CommentWithUserInfo'
+ *                   pagination:
+ *                     type: object
+ *                     $ref: '#/components/schemas/Pagination'
+ *       404:
+ *         description: Client Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Post not found
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/detail/:id", auth, PostController.detail);
 
 module.exports = router;

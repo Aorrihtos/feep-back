@@ -17,6 +17,42 @@ const storage = multer.diskStorage({
 const auth = require("../middlewares/auth");
 const uploads = multer({storage});
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Users
+ *     description: Everything about Users
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Mongo document id
+ *           example: 64918602143b41c789e2eddf
+ *         name:
+ *           type: string
+ *           description: Name of the user
+ *           example: Sergio
+ *         surname:
+ *           type: string
+ *           description: Surname of the user. Can be null.
+ *           example: Ferrer Canet
+ *         username:
+ *           type: string
+ *           description: Username of the user
+ *           example: Aorih
+ *         email:
+ *           type: string
+ *           description: Email of the user
+ *           example: aorih@gmail.com
+ *         profile_pic:
+ *           type: string
+ *           description: Name of the profile pic of the user
+ *           example: default-profile.png
+ */
+
 // Routes
 router.post("/register", UserController.register);
 router.post("/login", UserController.login);

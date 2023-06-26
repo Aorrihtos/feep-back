@@ -55,7 +55,7 @@ const remove = async (req, res) =>{
     const publisher = await Post.findOne({_id: id, user_id: req.user.id}).exec();
     if(!publisher) return res.status(400).json({
         status: "error",
-        message: "Post not found"
+        message: "Post not found / You're not the author of the post"
     })
     Post.findByIdAndDelete(id).exec()
         .then(post =>{
@@ -117,7 +117,7 @@ const detail = (req, res) => {
                     page,
                     total_pages: Math.ceil(total_items/ITEMS_PER_PAGE),
                     total_items,
-                    items_per_page: ITEMS_PER_PAGE
+                    items_per_page: parseInt(ITEMS_PER_PAGE)
                 }
             })
         })

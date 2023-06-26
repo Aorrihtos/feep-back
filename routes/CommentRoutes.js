@@ -37,6 +37,41 @@ const auth = require("../middlewares/auth");
  *           type: string
  *           description: Mongo document id
  *           example: 64918602143b41c789e2eddf
+ *     CommentWithUserInfo:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Mongo document id
+ *           example: 64918602143b41c789e2eddf
+ *         user_id:
+ *           type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *               description: Mongo document id of the user
+ *               example: 64918602143b41c789e2eddf
+ *             username:
+ *               type: string
+ *               description: Username of the user
+ *               example: Aorih
+ *             profile_pic:
+ *               type: string
+ *               description: Name of the profile pic of the user
+ *               example: default-profile.png
+ *         content:
+ *           type: string
+ *           description: Content of the comment
+ *           example: Nice post!
+ *         likes:
+ *           type: Number
+ *           description: Like counter of the comment
+ *           example: 7
+ *         created_at:
+ *           type: string
+ *           format: date
+ *           description: Datetime when comment is send
+ *           example: 2023-06-20T10:56:29.337Z
  */
 
 /**
