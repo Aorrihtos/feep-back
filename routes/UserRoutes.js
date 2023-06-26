@@ -51,6 +51,33 @@ const uploads = multer({storage});
  *           type: string
  *           description: Name of the profile pic of the user
  *           example: default-profile.png
+ *     UserRanking:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Mongo document id
+ *           example: 64918602143b41c789e2eddf
+ *         name:
+ *           type: string
+ *           description: Name of the user
+ *           example: Sergio
+ *         surname:
+ *           type: string
+ *           description: Surname of the user. Can be null.
+ *           example: Ferrer Canet
+ *         username:
+ *           type: string
+ *           description: Username of the user
+ *           example: Aorih
+ *         profile_pic:
+ *           type: string
+ *           description: Name of the profile pic of the user
+ *           example: default-profile.png
+ *         views:
+ *           type: Number
+ *           description: Total views of the user profile
+ *           example: 2546
  */
 
 // Routes
