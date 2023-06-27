@@ -68,7 +68,19 @@ const upload = multer({storage}).single("file0")
  *           format: date
  *           description: Datetime when the post is published
  *           example: 2023-06-20T10:56:29.337Z
- *     
+ *     FeedItem:
+ *       allOf:
+ *         - $ref: '#/components/schemas/PostWithUserInfo'
+ *         - type: object
+ *           properties:
+ *             likes:
+ *               type: Number
+ *               description: Number of likes of the post
+ *               example: 74
+ *             comments:
+ *               type: Number
+ *               description: Number of comments of the post
+ *               example: 10
  *     Pagination:
  *       type: object
  *       properties:
@@ -88,7 +100,7 @@ const upload = multer({storage}).single("file0")
 
 /**
  * @openapi
- * /api/v1/post/upload:
+ * /post/upload:
  *   post:
  *     tags:
  *       - Posts
@@ -153,7 +165,7 @@ router.post("/upload", [auth,upload], PostController.upload);
 
 /**
  * @openapi
- * /api/v1/post/remove/{id}:
+ * /post/remove/{id}:
  *   delete:
  *     tags:
  *       - Posts
@@ -204,7 +216,7 @@ router.delete("/remove/:id", auth, PostController.remove);
 
 /**
  * @openapi
- * /api/v1/post/detail/{id}:
+ * /post/detail/{id}:
  *   get:
  *     tags:
  *       - Posts

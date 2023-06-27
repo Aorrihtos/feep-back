@@ -33,7 +33,7 @@ const auth = require("../middlewares/auth");
 
 /**
  * @openapi
- * /api/v1/like/add/{postId}:
+ * /like/add/{postId}:
  *   post:
  *     tags:
  *       - Likes
@@ -71,7 +71,7 @@ router.post("/add/:postId", auth, LikeController.like);
 
 /**
  * @openapi
- * /api/v1/like/unlike/{postId}:
+ * /like/unlike/{postId}:
  *   delete:
  *     tags:
  *       - Likes

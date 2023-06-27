@@ -1,4 +1,5 @@
 const Block = require("../models/Block");
+const Follow = require("../models/Follow");
 
 const add = async (req, res) => {
     // Checks if block already exists
@@ -18,7 +19,9 @@ const add = async (req, res) => {
     }
     const block = new Block(data);
     block.save()
-        .then(block => {
+        .then(async block => {
+            // Deletes the following if it exists
+            await Follow.findOne({user_id: data.user_id, followed_id: data.blocked_id}).deleteOne();
             return res.status(200).json({
                 status: "success",
                 block

@@ -105,13 +105,15 @@ const remove = (req, res) =>{
                 status: "error",
                 message: "User not found"
             });
-            // TODO: Remove blocks and notifications
+            // Removing all the user stuff
             await Promise.all([
                 Comment.find({user_id: user._id}).deleteMany().exec(),
                 Like.find({user_id: user._id}).deleteMany().exec(),
                 Post.find({user_id: user._id}).deleteMany().exec(),
                 Follow.find({user_id: user._id}).deleteMany().exec(),
                 Follow.find({followed_id: user._id}).deleteMany().exec(),
+                Block.find({user_id: user._id}).deleteMany().exec(),
+                Block.find({blocked_id: user._id}).deleteMany().exec()
             ])
             return res.status(200).json({
                 status: "success",
@@ -169,14 +171,13 @@ const upload = (req, res) =>{
             fs.unlinkSync(req.file.path);
         } catch(err){
             console.log(err);
-        } finally {
-            /* Retrieve non-valid extension message and print error to continue with the server execution
-            *  We must check if the file was deleted */
-            return res.status(400).json({
-                status: "error",
-                message: `Extension ${extension} not allowed.`
-            });
         }
+        /* Retrieve non-valid extension message and print error to continue with the server execution
+            *  We must check if the file was deleted */
+        return res.status(400).json({
+            status: "error",
+            message: `Extension ${extension} not allowed.`
+        });
     }
     User.findByIdAndUpdate(id, {profile_pic: req.file.filename}).exec()
         .then(user =>{
@@ -261,13 +262,16 @@ const detail = (req, res) =>{
                 // Increase view counter
                 let views = ++user.views;
                 user = await User.findByIdAndUpdate(userId, {views}, {new: true})
+                    .select("-email -is_admin")
                     .exec();
+
             }
-            const [followers, following, rank_points] = await Promise.all([
+            let [followers, following, rank_points] = await Promise.all([
                 Follow.find({followed_id: userId}).count(),
                 Follow.find({user_id: userId}).count(),
-                (await Rank.findOne({user_id: userId})).points
+                Rank.findOne({user_id: userId}).distinct("points").exec()
             ]);
+            rank_points = rank_points.shift();
             return res.status(200).json({
                 status: "success",
                 user: {
@@ -276,7 +280,7 @@ const detail = (req, res) =>{
                         followers,
                         following
                     },
-                    rank_points
+                    points: rank_points
                 }
             })
         })
@@ -300,13 +304,23 @@ const following = (req, res) =>{
         : 1;
 
     Follow.find({user_id: userId})
-        .populate("followed_id")
+        .populate("followed_id", "-email -is_admin")
         .sort({created_at: "descending"})
         .paginate(page, ITEMS_PER_PAGE)
         .then(async follows =>{
             const total_items = await Follow.find({user_id: userId}).count().exec();
-            console.log(follows)
-            if(total_items > 0 ) follows = follows.map(f => cleanUser(f.followed_id))
+            if(total_items > 0 ){
+                follows = follows.map(f => cleanUser(f.followed_id))
+                for await (let item of follows){
+                    let index = follows.indexOf(item);
+                    [item.points, item.followers] = await Promise.all([
+                        Rank.findOne({user_id: item._id}).distinct("points").exec(),
+                        Follow.find({followed_id: item._id}).count()
+                    ]);
+                    item.points = item.points.shift();
+                    follows[index] = item;
+                }
+            }
             return res.status(200).json({
                 status: "success",
                 following: follows,
@@ -338,12 +352,23 @@ const followers = (req, res) =>{
         : 1;
 
     Follow.find({followed_id: userId})
-        .populate("user_id followed_id")
+        .populate("user_id", "-email")
         .sort({created_at: "descending"})
         .paginate(page, ITEMS_PER_PAGE)
         .then(async follows =>{
             const total_items = await Follow.find({followed_id: userId}).count().exec();
-            if(total_items > 0 ) follows = follows.map(f => cleanUser(f.user_id))
+            if(total_items > 0 ){
+                follows = follows.map(f => cleanUser(f.user_id))
+                for await (let item of follows){
+                    let index = follows.indexOf(item);
+                    [item.points, item.followers] = await Promise.all([
+                        Rank.findOne({user_id: item._id}).distinct("points").exec(),
+                        Follow.find({followed_id: item._id}).count()
+                    ]);
+                    item.points = item.points.shift();
+                    follows[index] = item;
+                }
+            }
             return res.status(200).json({
                 status: "success",
                 followers: follows,
@@ -381,6 +406,7 @@ const getPosts = async (req, res) =>{
 
     Post.find({user_id: userId})
         .select("-__v")
+        .populate("user_id", "-password -__v -views -is_admin -email")
         .sort("created_at")
         .paginate(page, ITEMS_PER_PAGE)
         .then(async posts =>{
@@ -404,7 +430,7 @@ const getPosts = async (req, res) =>{
                     page,
                     total_pages,
                     total_items,
-                    items_per_page: ITEMS_PER_PAGE
+                    items_per_page: parseInt(ITEMS_PER_PAGE)
                 }
             })
         })
@@ -419,15 +445,35 @@ const getPosts = async (req, res) =>{
 
 const blocked = (req, res) =>{
     const id = req.user.id;
-    // TODO: Check if pagination it's necessary
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
     Block.find({user_id: id})
         .select("-user_id -__v")
-        .populate("blocked_id", "-user_id -__v -password -is_admin -views")
-        .exec()
-        .then(blocks =>{
+        .populate("blocked_id", "-user_id -__v -password -is_admin -email")
+        .sort("-created_at")
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async blocks =>{
+            for await (let item of blocks){
+                let index = blocks.indexOf(item);
+                item = item.toObject();
+                [item.points, item.followers, total] = await Promise.all([
+                    Rank.findOne({user_id: item.blocked_id._id}).distinct("points"),
+                    Follow.find({followed_id: item.blocked_id._id}).count(),
+                    Block.find({user_id: id}).count()
+                ]);
+                item.points = item.points.shift();
+                blocks[index] = item;
+            }
             return res.status(200).json({
                 status: "success",
-                blocked: blocks
+                blocked: blocks,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total / ITEMS_PER_PAGE),
+                    total_items: total,
+                    items_per_page: parseInt(ITEMS_PER_PAGE)
+                }
             })
         })
         .catch(err => {

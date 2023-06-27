@@ -29,6 +29,29 @@ const BlockController = require("../controllers/BlockController");
  *           type: string
  *           description: Mongo document id
  *           example: 64918602143b41c789e2eddf
+ *     BlockListItem:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Mongo document id
+ *           example: 64918602143b41c789e2eddf
+ *         blocked_id:
+ *           type: object
+ *           $ref: '#/components/schemas/UserRanking'
+ *         created_at:
+ *           type: string
+ *           format: date
+ *           description: Datetime when block is produced
+ *           example: 2023-06-20T10:56:29.337Z
+ *         points:
+ *           type: Number
+ *           description: Number of ranking points of the user
+ *           example: 119
+ *         followers:
+ *           type: Number
+ *           description: Number of followers of the user
+ *           example: 2500
  *     500Error:
  *       type: object
  *       properties:
@@ -44,7 +67,7 @@ const BlockController = require("../controllers/BlockController");
 
 /**
  * @openapi
- * /api/v1/block/add/{blockedId}:
+ * /block/add/{blockedId}:
  *   post:
  *     tags:
  *       - Blocks
@@ -82,7 +105,7 @@ router.post("/add/:blockedId", auth, BlockController.add);
 
 /**
  * @openapi
- * /api/v1/block/pardon/{id}:
+ * /block/pardon/{id}:
  *   delete:
  *     tags:
  *       - Blocks

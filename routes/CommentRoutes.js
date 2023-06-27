@@ -76,12 +76,12 @@ const auth = require("../middlewares/auth");
 
 /**
  * @openapi
- * /api/v1/comment/send/{postId}:
+ * /comment/send/{postId}:
  *   post:
  *     tags:
  *       - Comments
  *     summary: Send a comment
- *     description: Send as comment to a post as the logged user
+ *     description: Send a comment to a post as the logged user
  *     parameters:
  *       - name: postId
  *         in: path
@@ -138,7 +138,7 @@ router.post("/send/:postId", auth, CommentController.send);
 
 /**
  * @openapi
- * /api/v1/comment/remove/{id}:
+ * /comment/remove/{id}:
  *   delete:
  *     tags:
  *       - Comments
@@ -189,7 +189,7 @@ router.delete("/remove/:id", auth, CommentController.remove);
 
 /**
  * @openapi
- * /api/v1/comment/like/{id}:
+ * /comment/like/{id}:
  *   put:
  *     tags:
  *       - Comments
@@ -240,7 +240,7 @@ router.put("/like/:id", auth, CommentController.like);
 
 /**
  * @openapi
- * /api/v1/comment/unlike/{id}:
+ * /comment/unlike/{id}:
  *   put:
  *     tags:
  *       - Comments

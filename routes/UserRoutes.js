@@ -43,14 +43,19 @@ const uploads = multer({storage});
  *           type: string
  *           description: Username of the user
  *           example: Aorih
- *         email:
- *           type: string
- *           description: Email of the user
- *           example: aorih@gmail.com
  *         profile_pic:
  *           type: string
  *           description: Name of the profile pic of the user
  *           example: default-profile.png
+ *     UserWithEmail:
+ *       allOf:
+ *         - $ref: '#/components/schemas/User'
+ *         - type: object
+ *           properties:
+ *             email:
+ *               type: string
+ *               description: Email of the user
+ *               example: aorih@gmail.com
  *     UserRanking:
  *       type: object
  *       properties:
@@ -117,7 +122,7 @@ const uploads = multer({storage});
 
 /**
  * @openapi
- * /api/v1/user/register:
+ * /user/register:
  *   post:
  *     tags:
  *       - Users
@@ -185,7 +190,7 @@ router.post("/register", UserController.register);
 
 /**
  * @openapi
- * /api/v1/user/login:
+ * /user/login:
  *   post:
  *     tags:
  *       - Users
@@ -260,7 +265,7 @@ router.post("/login", UserController.login);
 
 /**
  * @openapi
- * /api/v1/user/remove:
+ * /user/remove:
  *   delete:
  *     tags:
  *       - Users
@@ -305,7 +310,7 @@ router.delete("/remove", auth, UserController.remove);
 
 /**
  * @openapi
- * /api/v1/user/profile-pic/{id}:
+ * /user/profile-pic/{id}:
  *   get:
  *     tags:
  *       - Users
@@ -349,7 +354,7 @@ router.get("/profile-pic/:id?", auth, UserController.getProfilePic);
 
 /**
  * @openapi
- * /api/v1/user/upload:
+ * /user/upload:
  *   post:
  *     tags:
  *       - Users
@@ -402,7 +407,7 @@ router.post("/upload", [auth, uploads.single("file0")], UserController.upload);
 
 /**
  * @openapi
- * /api/v1/user/update:
+ * /user/update:
  *   put:
  *     tags:
  *       - Users
@@ -470,7 +475,7 @@ router.put("/update", auth, UserController.update);
 
 /**
  * @openapi
- * /api/v1/user/following/{id}:
+ * /user/following/{id}:
  *   get:
  *     tags:
  *       - Users
@@ -499,7 +504,16 @@ router.put("/update", auth, UserController.update);
  *                 following:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/CleanedUser'
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/UserRanking'
+ *                       - type: object
+ *                         properties:
+ *                           followers:
+ *                             type: Number
+ *                             example: 10
+ *                           points:
+ *                             type: Number
+ *                             example: 355
  *                 pagination:
  *                   type: object
  *                   $ref: '#/components/schemas/Pagination'
@@ -515,7 +529,7 @@ router.get("/following/:id?", auth, UserController.following);
 
 /**
  * @openapi
- * /api/v1/user/followers/{id}:
+ * /user/followers/{id}:
  *   get:
  *     tags:
  *       - Users
@@ -544,7 +558,16 @@ router.get("/following/:id?", auth, UserController.following);
  *                 followers:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/CleanedUser'
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/UserRanking'
+ *                       - type: object
+ *                         properties:
+ *                           followers:
+ *                             type: Number
+ *                             example: 10
+ *                           points:
+ *                             type: Number
+ *                             example: 355
  *                 pagination:
  *                   type: object
  *                   $ref: '#/components/schemas/Pagination'
@@ -560,7 +583,7 @@ router.get("/followers/:id?", auth, UserController.followers);
 
 /**
  * @openapi
- * /api/v1/user/detail/{id}:
+ * /user/detail/{id}:
  *   post:
  *     tags:
  *       - Users
@@ -597,7 +620,7 @@ router.get("/followers/:id?", auth, UserController.followers);
  *                         following:
  *                           type: Number
  *                           example: 70
- *                     rank_points:
+ *                     points:
  *                       type: Number
  *                       example: 7500
  *       403:
@@ -625,7 +648,7 @@ router.post("/detail/:id?", auth, UserController.detail);
 
 /**
  * @openapi
- * /api/v1/user/{id}/posts:
+ * /user/{id}/posts:
  *   get:
  *     tags:
  *       - Users
@@ -638,7 +661,7 @@ router.post("/detail/:id?", auth, UserController.detail);
  *         required: false
  *       - name: page
  *         in: query
- *         description: ObjectId of the user to retrieve
+ *         description: ObjectId of the user to retrieve his posts
  *         required: false
  *     responses:
  *       200:
@@ -651,24 +674,13 @@ router.post("/detail/:id?", auth, UserController.detail);
  *                 status:
  *                   type: string
  *                   example: success
- *                 user:
+ *                 posts:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/FeedItem'
+ *                 pagination:
  *                   type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       $ref: '#/components/schemas/CleanedUser'
- *                     follow_counter:
- *                       type: object
- *                       properties:
- *                         followers:
- *                           type: Number
- *                           example: 50
- *                         following:
- *                           type: Number
- *                           example: 70
- *                     rank_points:
- *                       type: Number
- *                       example: 7500
+ *                   $ref: '#/components/schemas/Pagination'
  *       403:
  *         description: Forbidden
  *         content:
@@ -691,8 +703,125 @@ router.post("/detail/:id?", auth, UserController.detail);
  *               $ref: '#/components/schemas/500Error'
  */
 router.get("/:id?/posts", auth, UserController.getPosts);
+
+/**
+ * @openapi
+ * /user/blocks:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get the user blocks
+ *     description: Get the users that the logged one have blocked
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: ObjectId of the user to retrieve his posts
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 blocked:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/BlockListItem'
+ *                 pagination:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/blocks", auth, UserController.blocked);
+
+/**
+ * @openapi
+ * /user/feed:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get the user feed
+ *     description: Get the logged user feed (the posts of his followings)
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: Number of page to retrieve
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 feed:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/FeedItem'
+ *                 pagination:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/feed", auth, UserController.feed);
+
+/**
+ * @openapi
+ * /user/search:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Search for a user
+ *     description: Find a user searching by any patron
+ *     parameters:
+ *       - name: user
+ *         in: query
+ *         description: Patron to search
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               $ref: '#/components/schemas/500Error'
+ */
 router.get("/search", auth, UserController.searcher);
 
 module.exports = router;

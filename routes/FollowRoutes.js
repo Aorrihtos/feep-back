@@ -35,7 +35,7 @@ const router = express.Router();
 
 /**
  * @openapi
- * /api/v1/follow/add/{userId}:
+ * /follow/add/{userId}:
  *   post:
  *     tags:
  *       - Follows
@@ -86,7 +86,7 @@ router.post("/add/:userId", auth, FollowController.follow);
 
 /**
  * @openapi
- * /api/v1/follow/unfollow/{userId}:
+ * /follow/unfollow/{userId}:
  *   delete:
  *     tags:
  *       - Follows

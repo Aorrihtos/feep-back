@@ -26,7 +26,7 @@ const RankController = require("../controllers/RankController");
 
 /**
  * @openapi
- * /api/v1/rank/get:
+ * /rank/get:
  *   get:
  *     tags:
  *       - Ranks

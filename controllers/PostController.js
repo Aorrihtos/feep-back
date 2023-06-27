@@ -88,7 +88,7 @@ const detail = (req, res) => {
         : 1;
     Post.findById(id)
         .select("-__v")
-        .populate("user_id", "-password -is_admin -__v -views")
+        .populate("user_id", "-password -is_admin -__v -views -email")
         .exec()
         .then(async post =>{
             if(!post) return res.status(404).json({
