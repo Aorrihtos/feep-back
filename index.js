@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 require("./services/rankService"); // CRONJOB
+const {swaggerDocs} = require("./swagger") // SWAGGER
 
 // Importing Routes
 const userRoutes = require("./routes/UserRoutes");
@@ -42,4 +43,5 @@ app.get("/", (req, res)=>{
 // Initialize the server
 app.listen(process.env.PORT, ()=>{
     console.log(`Server listening on port ${process.env.PORT}`);
+    swaggerDocs(app, process.env.PORT);
 })

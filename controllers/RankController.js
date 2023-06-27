@@ -1,4 +1,5 @@
 const Rank = require("../models/Rank");
+const Follow = require("../models/Follow");
 require("dotenv").config();
 require("mongoose-pagination");
 
@@ -11,7 +12,13 @@ const getRank = (req, res) =>{
         .populate("user_id", "-password -is_admin -__v -email")
         .sort("-points")
         .limit(limit)
-        .then(rank =>{
+        .then(async rank =>{
+            for await (let item of rank){
+                let index = rank.indexOf(item);
+                item = item.toObject();
+                item.followers = await Follow.find({followed_id: item.user_id._id}).count();
+                rank[index] = item;
+            }
             return res.status(200).json({
                 status: "success",
                 rank
