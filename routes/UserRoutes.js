@@ -824,4 +824,6 @@ router.get("/feed", auth, UserController.feed);
  */
 router.get("/search", auth, UserController.searcher);
 
+router.post("/contact", auth, UserController.contact);
+
 module.exports = router;

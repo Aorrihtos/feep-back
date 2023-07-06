@@ -10,6 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
+const {sendEmail} = require("../services/smpt");
 require("mongoose-pagination");
 
 // ENV Variables
@@ -43,9 +44,11 @@ const register = async (req, res) =>{
             // We also create his register in rank collection
             const rank = new Rank({user_id: user._id});
             await rank.save();
+            const token = generateToken(user);
             return res.status(200).json({
                 status: "success",
-                user: cleanUser(user)
+                user: cleanUser(user),
+                token
             })
         })
         .catch(err =>{
@@ -560,6 +563,26 @@ const searcher = (req, res)=>{
         })
 }
 
+const contact = (req,res)=>{
+    const data = req.body;
+    if(!data) return res.status(400).json({
+        status: "error",
+        message: "No data was provided"
+    });
+    try{
+        sendEmail(data);
+        return res.status(200).json({
+            status: "success",
+            message: "Mail sended!"
+        });
+    } catch (err){
+        return res.status(500).json({
+            status: "error",
+            message: err.message
+        })
+    }
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -578,5 +601,6 @@ module.exports = {
     getPosts,
     blocked,
     feed,
-    searcher
+    searcher,
+    contact
 }
