@@ -27,8 +27,14 @@ const UserSchema = Schema({
         type: String,
         default: "default_profile_pic.jpg"
     },
-    summary: String,
-    description: String,
+    summary: {
+        type: String,
+        maxlength: 25
+    },
+    description: {
+        type: String,
+        maxlength: 250
+    },
     views:{
         type: Number,
         default: 0

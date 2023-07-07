@@ -583,6 +583,30 @@ const contact = (req,res)=>{
     }
 }
 
+const description = (req, res) =>{
+    const id = req.user.id;
+    const data = req.body;
+    User.findByIdAndUpdate(id, data, {new: true})
+        .then(user => {
+            if(!user) return res.status(404).json({
+                status: "error",
+                message: "User not found"
+            });
+            return res.status(200).json({
+                status: "success",
+                user: cleanUser(user)
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -602,5 +626,6 @@ module.exports = {
     blocked,
     feed,
     searcher,
-    contact
+    contact,
+    description
 }
