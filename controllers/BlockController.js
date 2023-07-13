@@ -1,5 +1,6 @@
 const Block = require("../models/Block");
 const Follow = require("../models/Follow");
+const Rank = require("../models/Rank");
 
 const add = async (req, res) => {
     // Checks if block already exists
@@ -22,9 +23,18 @@ const add = async (req, res) => {
         .then(async block => {
             // Deletes the following if it exists
             await Follow.findOne({user_id: data.user_id, followed_id: data.blocked_id}).deleteOne();
+
+            let [blockDetailed, followers, points] = await Promise.all([
+                block.populate("blocked_id", "-email -password -__v -is_admin"),
+                Follow.find({followed_id: block.blocked_id}).count(),
+                Rank.find({user_id: block.blocked_id}).distinct("points")
+            ])
+            blockDetailed = blockDetailed.toObject();
+            blockDetailed.blocked_id.followers = followers;
+            blockDetailed.blocked_id.points = points.shift();
             return res.status(200).json({
                 status: "success",
-                block
+                block: blockDetailed
             });
         })
         .catch(err => {
@@ -37,8 +47,9 @@ const add = async (req, res) => {
 }
 
 const pardon = (req, res) => {
-    const id = req.params.id;
-    Block.findById(id).exec()
+    const blocked_id = req.params.id;
+    const user_id = req.user.id;
+    Block.findOne({user_id, blocked_id}).exec()
         .then(async block => {
             if(!block || block.user_id != req.user.id) return res.status(404).json({
                 status: "error",

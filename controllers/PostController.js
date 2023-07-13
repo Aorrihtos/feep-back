@@ -20,7 +20,7 @@ const upload = (req, res) =>{
     const attached_file = req.file
         ? req.file.filename
         : null;
-    const post = new Post({user_id: userId, content: data.content, attached_file});
+    const post = new Post({user_id: userId, content: data.content, attached_file, created_at: Date.now()});
     post.save().then(async post =>{
         let json = {
             status: "success",

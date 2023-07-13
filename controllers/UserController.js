@@ -137,7 +137,7 @@ const remove = (req, res) =>{
 // Auth required.
 const getProfilePic = (req, res) =>{
     const id = req.params.id
-        ? parseInt(req.params.id)
+        ? req.params.id
         : req.user.id;
 
     User.findById(id).exec()
@@ -189,7 +189,8 @@ const upload = (req, res) =>{
                 message: "User not found"
             });
             // If profile pic is distinct, we're deleting the old one
-            if(user.profile_pic !== req.file.filename){
+            if(user.profile_pic !== req.file.filename
+                && user.profile_pic !== "default_profile_pic.jpg"){
                 const oldPic = `./uploads/profiles/${user.profile_pic}`;
                 try{
                     fs.unlinkSync(oldPic);
@@ -410,7 +411,7 @@ const getPosts = async (req, res) =>{
     Post.find({user_id: userId})
         .select("-__v")
         .populate("user_id", "-password -__v -views -is_admin -email")
-        .sort("created_at")
+        .sort("-created_at")
         .paginate(page, ITEMS_PER_PAGE)
         .then(async posts =>{
             const total_items = await Post.find({user_id: userId}).count();
@@ -460,14 +461,14 @@ const blocked = (req, res) =>{
             for await (let item of blocks){
                 let index = blocks.indexOf(item);
                 item = item.toObject();
-                [item.points, item.followers, total] = await Promise.all([
+                [item.points, item.followers] = await Promise.all([
                     Rank.findOne({user_id: item.blocked_id._id}).distinct("points"),
-                    Follow.find({followed_id: item.blocked_id._id}).count(),
-                    Block.find({user_id: id}).count()
+                    Follow.find({followed_id: item.blocked_id._id}).count()
                 ]);
                 item.points = item.points.shift();
                 blocks[index] = item;
             }
+            const total = await Block.find({user_id: id}).count();
             return res.status(200).json({
                 status: "success",
                 blocked: blocks,
