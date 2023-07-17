@@ -274,5 +274,6 @@ router.delete("/remove/:id", auth, PostController.remove);
  *               $ref: '#/components/schemas/500Error'
  */
 router.get("/detail/:id", auth, PostController.detail);
+router.get("/image/:id", auth, PostController.image);
 
 module.exports = router;

@@ -6,6 +6,8 @@ const Rank = require("../models/Rank");
 require("mongoose-pagination");
 require("dotenv").config();
 const fs = require("fs");
+const User = require("../models/User");
+const path = require("path");
 
 // ENV Variables
 const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
@@ -130,8 +132,35 @@ const detail = (req, res) => {
         })
 }
 
+const image = (req, res) => {
+    const id = req.params.id;
+    Post.findById(id).exec()
+        .then(post => {
+            if(!post) return res.status(404).json({
+                status: "error",
+                message: "Post not found"
+            });
+            const filePath = `./uploads/posts/${post.attached_file}`;
+            fs.stat(filePath,(err, exists)=>{
+                if(err || !exists) return res.status(404).json({
+                    status: "error",
+                    message: "File not found"
+                });
+                return res.status(200).sendFile(path.resolve(filePath));
+            });
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+}
+
 module.exports = {
     upload,
     remove,
-    detail
+    detail,
+    image
 }

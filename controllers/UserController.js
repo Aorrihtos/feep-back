@@ -608,6 +608,42 @@ const description = (req, res) =>{
 
 }
 
+const posts_liked = (req, res)=> {
+    const id = req.user.id;
+    Like.find({user_id: id}).distinct('post_id')
+        .then(likes => {
+            return res.status(200).json({
+                status: 'success',
+                liked_posts: likes
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: 'error',
+                message: "Internal Server Error"
+            })
+        })
+}
+
+const comments_liked = (req, res)=> {
+    const id = req.user.id;
+    Like.find({user_id: id}).distinct('post_id')
+        .then(likes => {
+            return res.status(200).json({
+                status: 'success',
+                liked_posts: likes
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: 'error',
+                message: "Internal Server Error"
+            })
+        })
+}
+
 function validateExtension(ext){
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
@@ -628,5 +664,7 @@ module.exports = {
     feed,
     searcher,
     contact,
-    description
+    description,
+    posts_liked,
+    comments_liked
 }
