@@ -540,20 +540,44 @@ const feed = async (req, res) =>{
 
 const searcher = (req, res)=>{
     const search = req.query.user;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
     User.find({$or:[
             {username: {$regex: '.*' + search + '.*'}},
             {name: {$regex: '.*' + search + '.*'}},
             {surname: {$regex: '.*' + search + '.*'}}
-        ]})
-        .select("-password -email -is_admin -__v -views")
+        ], $and: [{_id: {$ne: req.user.id}}]})
+        .select("-password -email -is_admin -__v")
         .sort("-views created_at")
-        .limit(10) // Temporally limited, most likely to be paginated
-        .exec()
-        .then(users =>{
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async users =>{
+            for await (let user of users){
+                let index = users.indexOf(user);
+                user = user.toObject();
+                [user.points, user.followers] = await Promise.all([
+                    Rank.findOne({user_id: user._id}).distinct("points"),
+                    Follow.find({followed_id: user._id}).count()
+                ]);
+                user.points = user.points.shift();
+                users[index] = user;
+            }
+            const total_items = await User.find({$or:[
+                    {username: {$regex: '.*' + search + '.*'}},
+                    {name: {$regex: '.*' + search + '.*'}},
+                    {surname: {$regex: '.*' + search + '.*'}}
+                ], $and: [{_id: {$ne: req.user.id}}]}).count();
+            const total_pages = Math.ceil(total_items/ITEMS_PER_PAGE);
             return res.status(200).json({
                 status: "success",
-                users
-            })
+                users,
+                pagination: {
+                    page,
+                    total_pages,
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            });
         })
         .catch(err =>{
             console.log(err);
