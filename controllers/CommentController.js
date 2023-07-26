@@ -11,13 +11,15 @@ const send = (req, res) => {
     const comment = new Comment({
         user_id: req.user.id,
         post_id,
-        content: req.body.content
+        content: req.body.content,
+        created_at: Date.now()
     });
     comment.save()
-        .then(comment => {
+        .then(async comment => {
+            const detailed = await comment.populate("user_id", {_id: 1, username: 1, profile_pic: 1})
             return res.status(200).json({
                 status: "success",
-                comment
+                comment: detailed
             });
         })
         .catch(err => {

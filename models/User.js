@@ -15,6 +15,10 @@ const UserSchema = Schema({
         type: String,
         required: true
     },
+    date: {
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true
@@ -22,6 +26,14 @@ const UserSchema = Schema({
     profile_pic: {
         type: String,
         default: "default_profile_pic.jpg"
+    },
+    summary: {
+        type: String,
+        maxlength: 25
+    },
+    description: {
+        type: String,
+        maxlength: 250
     },
     views:{
         type: Number,

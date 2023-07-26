@@ -824,4 +824,12 @@ router.get("/feed", auth, UserController.feed);
  */
 router.get("/search", auth, UserController.searcher);
 
+router.post("/contact", auth, UserController.contact);
+
+router.post("/description", auth, UserController.description);
+
+router.get("/liked-posts", auth, UserController.posts_liked);
+
+router.get("/liked-comments", auth, UserController.comments_liked);
+
 module.exports = router;

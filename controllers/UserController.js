@@ -10,6 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
+const {sendEmail} = require("../services/smpt");
 require("mongoose-pagination");
 
 // ENV Variables
@@ -43,9 +44,11 @@ const register = async (req, res) =>{
             // We also create his register in rank collection
             const rank = new Rank({user_id: user._id});
             await rank.save();
+            const token = generateToken(user);
             return res.status(200).json({
                 status: "success",
-                user: cleanUser(user)
+                user: cleanUser(user),
+                token
             })
         })
         .catch(err =>{
@@ -107,13 +110,14 @@ const remove = (req, res) =>{
             });
             // Removing all the user stuff
             await Promise.all([
-                Comment.find({user_id: user._id}).deleteMany().exec(),
-                Like.find({user_id: user._id}).deleteMany().exec(),
-                Post.find({user_id: user._id}).deleteMany().exec(),
-                Follow.find({user_id: user._id}).deleteMany().exec(),
-                Follow.find({followed_id: user._id}).deleteMany().exec(),
-                Block.find({user_id: user._id}).deleteMany().exec(),
-                Block.find({blocked_id: user._id}).deleteMany().exec()
+                Comment.find({user_id: id}).deleteMany().exec(),
+                Like.find({user_id: id}).deleteMany().exec(),
+                Post.find({user_id: id}).deleteMany().exec(),
+                Follow.find({user_id: id}).deleteMany().exec(),
+                Follow.find({followed_id: id}).deleteMany().exec(),
+                Block.find({user_id: id}).deleteMany().exec(),
+                Block.find({blocked_id: id}).deleteMany().exec(),
+                Rank.findOneAndDelete({user_id: id}).exec()
             ])
             return res.status(200).json({
                 status: "success",
@@ -134,7 +138,7 @@ const remove = (req, res) =>{
 // Auth required.
 const getProfilePic = (req, res) =>{
     const id = req.params.id
-        ? parseInt(req.params.id)
+        ? req.params.id
         : req.user.id;
 
     User.findById(id).exec()
@@ -186,7 +190,8 @@ const upload = (req, res) =>{
                 message: "User not found"
             });
             // If profile pic is distinct, we're deleting the old one
-            if(user.profile_pic !== req.file.filename){
+            if(user.profile_pic !== req.file.filename
+                && user.profile_pic !== "default_profile_pic.jpg"){
                 const oldPic = `./uploads/profiles/${user.profile_pic}`;
                 try{
                     fs.unlinkSync(oldPic);
@@ -407,7 +412,7 @@ const getPosts = async (req, res) =>{
     Post.find({user_id: userId})
         .select("-__v")
         .populate("user_id", "-password -__v -views -is_admin -email")
-        .sort("created_at")
+        .sort("-created_at")
         .paginate(page, ITEMS_PER_PAGE)
         .then(async posts =>{
             const total_items = await Post.find({user_id: userId}).count();
@@ -457,14 +462,14 @@ const blocked = (req, res) =>{
             for await (let item of blocks){
                 let index = blocks.indexOf(item);
                 item = item.toObject();
-                [item.points, item.followers, total] = await Promise.all([
+                [item.points, item.followers] = await Promise.all([
                     Rank.findOne({user_id: item.blocked_id._id}).distinct("points"),
-                    Follow.find({followed_id: item.blocked_id._id}).count(),
-                    Block.find({user_id: id}).count()
+                    Follow.find({followed_id: item.blocked_id._id}).count()
                 ]);
                 item.points = item.points.shift();
                 blocks[index] = item;
             }
+            const total = await Block.find({user_id: id}).count();
             return res.status(200).json({
                 status: "success",
                 blocked: blocks,
@@ -536,20 +541,44 @@ const feed = async (req, res) =>{
 
 const searcher = (req, res)=>{
     const search = req.query.user;
+    const page = req.query.page
+        ? parseInt(req.query.page)
+        : 1;
     User.find({$or:[
             {username: {$regex: '.*' + search + '.*'}},
             {name: {$regex: '.*' + search + '.*'}},
             {surname: {$regex: '.*' + search + '.*'}}
-        ]})
-        .select("-password -email -is_admin -__v -views")
+        ], $and: [{_id: {$ne: req.user.id}}]})
+        .select("-password -email -is_admin -__v")
         .sort("-views created_at")
-        .limit(10) // Temporally limited, most likely to be paginated
-        .exec()
-        .then(users =>{
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async users =>{
+            for await (let user of users){
+                let index = users.indexOf(user);
+                user = user.toObject();
+                [user.points, user.followers] = await Promise.all([
+                    Rank.findOne({user_id: user._id}).distinct("points"),
+                    Follow.find({followed_id: user._id}).count()
+                ]);
+                user.points = user.points.shift();
+                users[index] = user;
+            }
+            const total_items = await User.find({$or:[
+                    {username: {$regex: '.*' + search + '.*'}},
+                    {name: {$regex: '.*' + search + '.*'}},
+                    {surname: {$regex: '.*' + search + '.*'}}
+                ], $and: [{_id: {$ne: req.user.id}}]}).count();
+            const total_pages = Math.ceil(total_items/ITEMS_PER_PAGE);
             return res.status(200).json({
                 status: "success",
-                users
-            })
+                users,
+                pagination: {
+                    page,
+                    total_pages,
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            });
         })
         .catch(err =>{
             console.log(err);
@@ -557,6 +586,86 @@ const searcher = (req, res)=>{
                 status: "error",
                 message: "Internal Server Error"
             });
+        })
+}
+
+const contact = (req,res)=>{
+    const data = req.body;
+    if(!data) return res.status(400).json({
+        status: "error",
+        message: "No data was provided"
+    });
+    try{
+        sendEmail(data);
+        return res.status(200).json({
+            status: "success",
+            message: "Mail sended!"
+        });
+    } catch (err){
+        return res.status(500).json({
+            status: "error",
+            message: err.message
+        })
+    }
+}
+
+const description = (req, res) =>{
+    const id = req.user.id;
+    const data = req.body;
+    User.findByIdAndUpdate(id, data, {new: true})
+        .then(user => {
+            if(!user) return res.status(404).json({
+                status: "error",
+                message: "User not found"
+            });
+            return res.status(200).json({
+                status: "success",
+                user: cleanUser(user)
+            })
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        })
+
+}
+
+const posts_liked = (req, res)=> {
+    const id = req.user.id;
+    Like.find({user_id: id}).distinct('post_id')
+        .then(likes => {
+            return res.status(200).json({
+                status: 'success',
+                liked_posts: likes
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: 'error',
+                message: "Internal Server Error"
+            })
+        })
+}
+
+const comments_liked = (req, res)=> {
+    const id = req.user.id;
+    Like.find({user_id: id}).distinct('post_id')
+        .then(likes => {
+            return res.status(200).json({
+                status: 'success',
+                liked_posts: likes
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: 'error',
+                message: "Internal Server Error"
+            })
         })
 }
 
@@ -578,5 +687,9 @@ module.exports = {
     getPosts,
     blocked,
     feed,
-    searcher
+    searcher,
+    contact,
+    description,
+    posts_liked,
+    comments_liked
 }

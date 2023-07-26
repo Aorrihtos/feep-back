@@ -1,4 +1,5 @@
 const Follow = require("../models/Follow");
+const Rank = require("../models/Rank");
 const {cleanUser} = require("../helpers/UserHelper");
 
 const follow = async (req, res) => {
@@ -18,12 +19,17 @@ const follow = async (req, res) => {
     // Save the new follow
     follow.save()
         .then(async follow =>{
-            //const followDetailed = await follow.populate("user_id followed_id");
-            //followDetailed.user_id = cleanUser(followDetailed.user_id);
-            //followDetailed.followed_id = cleanUser(followDetailed.followed_id);
+            let [followDetailed, followers, points] = await Promise.all([
+                follow.populate("followed_id", "-email -password -__v -is_admin"),
+                Follow.find({followed_id: follow.user_id}).count(),
+                Rank.find({user_id: follow.user_id}).distinct("points")
+            ])
+            followDetailed = followDetailed.toObject();
+            followDetailed.followed_id.followers = followers;
+            followDetailed.followed_id.points = points.shift();
             return res.status(200).json({
                 status: "success",
-                follow
+                follow: followDetailed
             })
         })
         .catch(err =>{
