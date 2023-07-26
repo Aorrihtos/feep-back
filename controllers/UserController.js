@@ -110,13 +110,14 @@ const remove = (req, res) =>{
             });
             // Removing all the user stuff
             await Promise.all([
-                Comment.find({user_id: user._id}).deleteMany().exec(),
-                Like.find({user_id: user._id}).deleteMany().exec(),
-                Post.find({user_id: user._id}).deleteMany().exec(),
-                Follow.find({user_id: user._id}).deleteMany().exec(),
-                Follow.find({followed_id: user._id}).deleteMany().exec(),
-                Block.find({user_id: user._id}).deleteMany().exec(),
-                Block.find({blocked_id: user._id}).deleteMany().exec()
+                Comment.find({user_id: id}).deleteMany().exec(),
+                Like.find({user_id: id}).deleteMany().exec(),
+                Post.find({user_id: id}).deleteMany().exec(),
+                Follow.find({user_id: id}).deleteMany().exec(),
+                Follow.find({followed_id: id}).deleteMany().exec(),
+                Block.find({user_id: id}).deleteMany().exec(),
+                Block.find({blocked_id: id}).deleteMany().exec(),
+                Rank.findOneAndDelete({user_id: id}).exec()
             ])
             return res.status(200).json({
                 status: "success",
