@@ -13,6 +13,7 @@ const setBonus = schedule.scheduleJob('0 0 * * *', async function(){
     try{
         const resets = await Rank.updateMany({user_id: {$nin: daily_post}},{multiplier: 1.0});
         console.log(`Number of users resetted: ${resets.modifiedCount}`);
+        await Rank.updateMany(null, {reclaimed: false});
     } catch(err){
         throw new Error(err);
     }
