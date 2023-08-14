@@ -653,11 +653,11 @@ const posts_liked = (req, res)=> {
 
 const comments_liked = (req, res)=> {
     const id = req.user.id;
-    Like.find({user_id: id}).distinct('post_id')
+    Like.find({user_id: id}).distinct('comment_id')
         .then(likes => {
             return res.status(200).json({
                 status: 'success',
-                liked_posts: likes
+                liked_comments: likes
             });
         })
         .catch(err => {

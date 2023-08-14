@@ -67,7 +67,9 @@ const auth = require("../middlewares/auth");
  *               type: object
  *               $ref: '#/components/schemas/500Error'
  */
-router.post("/add/:postId", auth, LikeController.like);
+router.post("/add/post/:postId", auth, LikeController.likePost);
+
+router.post("/add/comment/:commentId", auth, LikeController.likeComment);
 
 /**
  * @openapi
@@ -118,6 +120,7 @@ router.post("/add/:postId", auth, LikeController.like);
  *               type: object
  *               $ref: '#/components/schemas/500Error'
  */
-router.delete("/unlike/:postId", auth, LikeController.unlike);
+router.delete("/unlike/post/:postId", auth, LikeController.unlikePost);
+router.delete("/unlike/comment/:commentId", auth, LikeController.unlikeComment);
 
 module.exports = router;

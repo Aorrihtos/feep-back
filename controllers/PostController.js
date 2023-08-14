@@ -110,6 +110,12 @@ const detail = (req, res) => {
                     .exec(),
                 Comment.find({post_id: post._id, user_id: {$nin: blocked_array}}).count()
             ]);
+            for await (let item of comments){
+                const index = comments.indexOf(item);
+                item = item.toObject();
+                item.likes = await Like.find({comment_id: item._id}).count();
+                comments[index] = item;
+            }
             return res.status(200).json({
                 status: "success",
                 post,
