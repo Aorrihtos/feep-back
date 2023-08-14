@@ -9,6 +9,10 @@ const LikeSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "Post"
     },
+    comment_id: {
+        type: Schema.Types.ObjectId,
+        ref: "Comment"
+    },
     created_at: {
         type: Date,
         default: Date.now()
