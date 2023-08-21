@@ -8,6 +8,7 @@ const Rank = require("../models/Rank");
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
+const sharp = require("sharp");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
 const {sendEmail} = require("../services/smpt");
@@ -177,29 +178,38 @@ const upload = (req, res) =>{
             console.log(err);
         }
         /* Retrieve non-valid extension message and print error to continue with the server execution
-            *  We must check if the file was deleted */
+        *  We must check if the file was deleted */
         return res.status(400).json({
             status: "error",
             message: `Extension ${extension} not allowed.`
         });
     }
-    User.findByIdAndUpdate(id, {profile_pic: req.file.filename}).exec()
-        .then(user =>{
+    //Naming the new image
+    const ref = `${req.user.username}-${req.file.originalname}.webp`;
+    User.findByIdAndUpdate(id, {profile_pic: ref}).exec()
+        .then(async user =>{
             if(!user) return res.status(404).json({
                 status: "error",
                 message: "User not found"
             });
             // If profile pic is distinct, we're deleting the old one
-            if(user.profile_pic !== req.file.filename
-                && user.profile_pic !== "default_profile_pic.jpg"){
+            if(user.profile_pic !== ref
+                && user.profile_pic !== "default_profile_pic.webp"){
                 const oldPic = `./uploads/profiles/${user.profile_pic}`;
                 try{
                     fs.unlinkSync(oldPic);
                 } catch(err) {
-                    console.log(err);
+                    console.log(err);npm
                 }
             }
             user.profile_pic = req.file.filename;
+
+            // Optimizing the img
+            const {buffer} = req.file;
+            await sharp(buffer)
+                .webp({quality:20})
+                .toFile("./uploads/profiles/" + ref);
+
             return res.status(200).json({
                 status: "success",
                 user: cleanUser(user)
@@ -670,6 +680,7 @@ const comments_liked = (req, res)=> {
 }
 
 function validateExtension(ext){
+    ext = ext.toLowerCase();
     return (ext === "jpg" || ext === "png"
         || ext === "gif" || ext === "jpeg");
 }

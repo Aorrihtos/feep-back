@@ -4,17 +4,18 @@ const multer = require("multer");
 const router = express.Router();
 
 // Multer config
-const storage = multer.diskStorage({
-    destination: (req, file, cb) =>{
-        cb(null,"./uploads/profiles")
-    },
-    filename: (req, file, cb) =>{
-        cb(null, `${req.user.username}-${file.originalname}`)
-    }
-});
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) =>{
+//         cb(null,"./uploads/profiles")
+//     },
+//     filename: (req, file, cb) =>{
+//         cb(null, `${req.user.username}-${file.originalname}.webp`)
+//     }
+// });
 
 // Middlewares
 const auth = require("../middlewares/auth");
+const storage = multer.memoryStorage();
 const uploads = multer({storage});
 
 /**

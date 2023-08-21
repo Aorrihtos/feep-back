@@ -25,7 +25,7 @@ const UserSchema = Schema({
     },
     profile_pic: {
         type: String,
-        default: "default_profile_pic.jpg"
+        default: "default_profile_pic.webp"
     },
     summary: {
         type: String,
