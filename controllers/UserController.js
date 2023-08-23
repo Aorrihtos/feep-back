@@ -9,6 +9,7 @@ const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
+const {Storage} = require("@google-cloud/storage");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
 const {sendEmail} = require("../services/smpt");
@@ -18,6 +19,9 @@ require("mongoose-pagination");
 require("dotenv").config();
 const SALT = parseInt(process.env.SALT);
 const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE);
+
+//Initialize storage
+const storage = new Storage({projectId: 'tensile-cable-396618'});
 
 // Register method
 const register = async (req, res) =>{
@@ -143,19 +147,23 @@ const getProfilePic = (req, res) =>{
         : req.user.id;
 
     User.findById(id).exec()
-        .then(user => {
+        .then(async user => {
             if(!user) return res.status(404).json({
                 status: "error",
                 message: "User not found"
             });
-            const filePath = `./uploads/profiles/${user.profile_pic}`;
-            fs.stat(filePath,(err, exists)=>{
-                if(err || !exists) return res.status(404).json({
-                    status: "error",
-                    message: "File not found"
-                });
-                return res.status(200).sendFile(path.resolve(filePath));
-            });
+            // const filePath = `./uploads/profiles/${user.profile_pic}`;
+            // fs.stat(filePath,(err, exists)=>{
+            //     if(err || !exists) return res.status(404).json({
+            //         status: "error",
+            //         message: "File not found"
+            //     });
+            //     return res.status(200).sendFile(path.resolve(filePath));
+            // });
+            const buffer = await storage.bucket('feep').file('aorih-wallpaperPrueba.png.webp').download();
+            const encodedBuffer = buffer.toString('base64');
+            return res.status(200).send(`<img src="data:webp;base64,${b64}" />`);
+
         })
         .catch(err =>{
             console.log(err);
@@ -199,16 +207,23 @@ const upload = (req, res) =>{
                 try{
                     fs.unlinkSync(oldPic);
                 } catch(err) {
-                    console.log(err);npm
+                    console.log(err);
                 }
             }
             user.profile_pic = req.file.filename;
 
             // Optimizing the img
             const {buffer} = req.file;
-            await sharp(buffer)
+            // await sharp(buffer)
+            //     .webp({quality:20})
+            //     .toFile("./uploads/profiles/" + ref);
+
+            const fileToUpload = await sharp(buffer)
                 .webp({quality:20})
-                .toFile("./uploads/profiles/" + ref);
+                .toBuffer();
+
+            // Upload to GCLOUD Storage
+            await storage.bucket('feep').file(ref).save(fileToUpload);
 
             return res.status(200).json({
                 status: "success",
