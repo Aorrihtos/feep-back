@@ -1,4 +1,5 @@
 const {model, Schema} = require("mongoose");
+require("dotenv").config();
 
 const UserSchema = Schema({
     name: {
@@ -25,7 +26,7 @@ const UserSchema = Schema({
     },
     profile_pic: {
         type: String,
-        default: "default_profile_pic.webp"
+        default: `${process.env.GCLOUD_STORAGE_BASEPATH}/default_profile_pic.webp`
     },
     summary: {
         type: String,

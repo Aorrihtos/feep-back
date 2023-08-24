@@ -153,7 +153,7 @@ const getProfilePic = (req, res) =>{
                 status: "error",
                 message: "User not found"
             });
-            return res.status(200).send(`${GCLOUD_STORAGE_BASEPATH}/${user.profile_pic}`);
+            return res.status(200).json(user.profile_pic);
         })
         .catch(err =>{
             console.log(err);
