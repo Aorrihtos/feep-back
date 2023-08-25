@@ -9,19 +9,37 @@ const fs = require("fs");
 const User = require("../models/User");
 const path = require("path");
 
+const sharp = require("sharp");
+const {Storage} = require("@google-cloud/storage");
+
+//Initialize Storage
+const storage = new Storage({keyFile: '../database/key.json'});
+
 // ENV Variables
 const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
 
-const upload = (req, res) =>{
+const upload = async (req, res) =>{
     const userId = req.user.id;
     const data = req.body;
     if(!data.content) return res.status(400).json({
         status: "error",
         message: "No content was provided"
     });
-    const attached_file = req.file
-        ? req.file.filename
+    let attached_file = req.file
+        ? `${req.user.id}-${Date.now()}-${req.file.originalname}`
         : null;
+    if(attached_file){
+        // Optimizing the img
+        const {buffer} = req.file;
+        const fileToUpload = await sharp(buffer)
+            .webp({quality:20})
+            .toBuffer();
+
+        // Upload to GCLOUD Storage
+        await storage.bucket('feep').file(attached_file).save(fileToUpload);
+        attached_file = `${process.env.GCLOUD_STORAGE_BASEPATH}/${attached_file}`;
+        console.log(attached_file);
+    }
     const post = new Post({user_id: userId, content: data.content, attached_file, created_at: Date.now()});
     post.save().then(async post =>{
         let json = {
@@ -62,12 +80,9 @@ const remove = async (req, res) =>{
     Post.findByIdAndDelete(id).exec()
         .then(post =>{
             if(post.attached_file != null){
-                const path = "./uploads/posts/" + post.attached_file;
-                try {
-                    fs.unlinkSync(path);
-                }catch (err){
-                    console.log(err);
-                }
+                const img = post.attached_file.substring(36);
+                storage.bucket('feep').file(img).delete()
+                    .then(() => console.log(`Droped ${img} from gcloud storage`))
             }
             return res.status(200).json({
                 status: "success",
