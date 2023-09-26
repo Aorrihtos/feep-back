@@ -167,6 +167,8 @@ const getProfilePic = (req, res) =>{
 // Uploads a new profile-pic for the logged user
 // Auth required
 const upload = (req, res) =>{
+    //TODO: PORFAVOR SERGIO ARREGLA QUE NO SE CAMBIE EL NOMBRE EN LA BASE DE DATOS SI SE PRODUCE UN ERROR
+
     const id = req.user.id;
     const extension = req.file.originalname.split(".").pop();
     if(!validateExtension(extension)){
@@ -681,7 +683,7 @@ const comments_liked = (req, res)=> {
 function validateExtension(ext){
     ext = ext.toLowerCase();
     return (ext === "jpg" || ext === "png"
-        || ext === "gif" || ext === "jpeg");
+        || ext === "gif" || ext === "jpeg" || ext === 'webp');
 }
 
 module.exports = {
