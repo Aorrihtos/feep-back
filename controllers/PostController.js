@@ -32,6 +32,7 @@ const upload = async (req, res) =>{
         // Optimizing the img
         const {buffer} = req.file;
         const fileToUpload = await sharp(buffer)
+            .resize(1280, null, {kernel: "nearest"})
             .webp({quality:20})
             .toBuffer();
 
