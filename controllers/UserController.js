@@ -9,6 +9,7 @@ const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
+const {Storage} = require("@google-cloud/storage");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
 const {sendEmail} = require("../services/smpt");
@@ -18,6 +19,10 @@ require("mongoose-pagination");
 require("dotenv").config();
 const SALT = parseInt(process.env.SALT);
 const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE);
+const GCLOUD_STORAGE_BASEPATH = process.env.GCLOUD_STORAGE_BASEPATH;
+
+//Initialize storage
+const storage = new Storage({keyFile: '../database/key.json'});
 
 // Register method
 const register = async (req, res) =>{
@@ -143,19 +148,12 @@ const getProfilePic = (req, res) =>{
         : req.user.id;
 
     User.findById(id).exec()
-        .then(user => {
+        .then(async user => {
             if(!user) return res.status(404).json({
                 status: "error",
                 message: "User not found"
             });
-            const filePath = `./uploads/profiles/${user.profile_pic}`;
-            fs.stat(filePath,(err, exists)=>{
-                if(err || !exists) return res.status(404).json({
-                    status: "error",
-                    message: "File not found"
-                });
-                return res.status(200).sendFile(path.resolve(filePath));
-            });
+            return res.status(200).json(user.profile_pic);
         })
         .catch(err =>{
             console.log(err);
@@ -169,6 +167,8 @@ const getProfilePic = (req, res) =>{
 // Uploads a new profile-pic for the logged user
 // Auth required
 const upload = (req, res) =>{
+    //TODO: PORFAVOR SERGIO ARREGLA QUE NO SE CAMBIE EL NOMBRE EN LA BASE DE DATOS SI SE PRODUCE UN ERROR
+
     const id = req.user.id;
     const extension = req.file.originalname.split(".").pop();
     if(!validateExtension(extension)){
@@ -186,33 +186,34 @@ const upload = (req, res) =>{
     }
     //Naming the new image
     const ref = `${req.user.username}-${req.file.originalname}.webp`;
-    User.findByIdAndUpdate(id, {profile_pic: ref}).exec()
+    const urlToImage = `${GCLOUD_STORAGE_BASEPATH}/${ref}`;
+    User.findByIdAndUpdate(id, {profile_pic: urlToImage}).exec()
         .then(async user =>{
             if(!user) return res.status(404).json({
                 status: "error",
                 message: "User not found"
             });
             // If profile pic is distinct, we're deleting the old one
-            if(user.profile_pic !== ref
-                && user.profile_pic !== "default_profile_pic.webp"){
-                const oldPic = `./uploads/profiles/${user.profile_pic}`;
-                try{
-                    fs.unlinkSync(oldPic);
-                } catch(err) {
-                    console.log(err);npm
-                }
+            if(user.profile_pic !== urlToImage && user.profile_pic !== process.env.DEFAULT_PROFILE_PIC){
+                const oldPicName = user.profile_pic.substring(36);
+                console.log(oldPicName)
+                storage.bucket('feep').file(oldPicName).delete()
+                    .then(() => console.log(`Droped ${user.profile_pic} from cloud storage`));
             }
-            user.profile_pic = req.file.filename;
 
             // Optimizing the img
             const {buffer} = req.file;
-            await sharp(buffer)
+            const fileToUpload = await sharp(buffer)
                 .webp({quality:20})
-                .toFile("./uploads/profiles/" + ref);
+                .toBuffer();
+
+            // Upload to GCLOUD Storage
+            await storage.bucket('feep').file(ref).save(fileToUpload);
 
             return res.status(200).json({
                 status: "success",
-                user: cleanUser(user)
+                user: cleanUser(user),
+                profile_pic: `${GCLOUD_STORAGE_BASEPATH}/${ref}`
             })
         })
         .catch(err =>{
@@ -682,7 +683,7 @@ const comments_liked = (req, res)=> {
 function validateExtension(ext){
     ext = ext.toLowerCase();
     return (ext === "jpg" || ext === "png"
-        || ext === "gif" || ext === "jpeg");
+        || ext === "gif" || ext === "jpeg" || ext === 'webp');
 }
 
 module.exports = {
