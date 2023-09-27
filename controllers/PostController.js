@@ -12,8 +12,9 @@ const path = require("path");
 const sharp = require("sharp");
 const {Storage} = require("@google-cloud/storage");
 
+
 //Initialize Storage
-const storage = new Storage({keyFile: '../database/key.json'});
+const storage = new Storage({keyFile: '../database/key-cloud.json'});
 
 // ENV Variables
 const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
