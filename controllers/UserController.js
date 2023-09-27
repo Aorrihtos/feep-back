@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = parseInt(process.env.ITEMS_PER_PAGE);
 const GCLOUD_STORAGE_BASEPATH = process.env.GCLOUD_STORAGE_BASEPATH;
 
 //Initialize storage
-const storage = new Storage({keyFile: '../database/key.json'});
+const storage = new Storage({keyFile: '../database/key-cloud.json'});
 
 // Register method
 const register = async (req, res) =>{
