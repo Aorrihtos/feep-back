@@ -205,8 +205,8 @@ const upload = (req, res) =>{
             // Optimizing the img
             const {buffer} = req.file;
             const fileToUpload = await sharp(buffer)
-                .resize(130, null, {kernel: "nearest"})
-                .webp({quality:70})
+                .resize(800, null, {kernel: "nearest"})
+                .webp({quality:20})
                 .toBuffer();
 
             // Upload to GCLOUD Storage
