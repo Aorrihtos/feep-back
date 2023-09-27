@@ -1,4 +1,4 @@
-const {model, Schema} = require("mongoose");
+const { model, Schema } = require("mongoose");
 require("dotenv").config();
 
 const UserSchema = Schema({
@@ -10,7 +10,7 @@ const UserSchema = Schema({
     username: {
         type: String,
         required: true,
-        length: {min: 3, max: 15}
+        length: { min: 3, max: 15 }
     },
     password: {
         type: String,
@@ -19,6 +19,14 @@ const UserSchema = Schema({
     date: {
         type: String,
         required: true
+    },
+    expirationDate: {
+        type: String,
+        required: false
+    },
+    confirmationToken: {
+        type: String,
+        required: false
     },
     email: {
         type: String,
@@ -36,7 +44,7 @@ const UserSchema = Schema({
         type: String,
         maxlength: 250
     },
-    views:{
+    views: {
         type: Number,
         default: 0
     },
@@ -46,4 +54,4 @@ const UserSchema = Schema({
     }
 })
 
-module.exports= model("User", UserSchema, "users");
+module.exports = model("User", UserSchema, "users");

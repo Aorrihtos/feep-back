@@ -12,11 +12,11 @@ const transporter = nodemailer.createTransport({
     secure: true,
 });
 
-const sendEmail = (data)=>{
+const sendEmail = (data) => {
     console.log(data);
     const mailData = {
         from: data.email, // sender address
-        to: 'sergioferrerept@gmail.com', // list of receivers
+        to: data.email || 'sergioferrerept@gmail.com', // list of receivers
         sender: data.email,
         replyTo: data.email,
         title: data.title,
@@ -24,7 +24,7 @@ const sendEmail = (data)=>{
         text: data.text
     };
     transporter.sendMail(mailData, function (err, info) {
-        if(err) {
+        if (err) {
             console.log(err);
             throw new Error("Error sending the mail, please, try again later");
         }
@@ -32,4 +32,4 @@ const sendEmail = (data)=>{
     });
 }
 
-module.exports = {sendEmail};
+module.exports = { sendEmail };

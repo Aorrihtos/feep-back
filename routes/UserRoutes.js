@@ -16,7 +16,7 @@ const router = express.Router();
 // Middlewares
 const auth = require("../middlewares/auth");
 const storage = multer.memoryStorage();
-const uploads = multer({storage});
+const uploads = multer({ storage });
 
 /**
  * @openapi
@@ -832,5 +832,7 @@ router.post("/description", auth, UserController.description);
 router.get("/liked-posts", auth, UserController.posts_liked);
 
 router.get("/liked-comments", auth, UserController.comments_liked);
+
+router.get("/confirmation/:token?", auth, UserController.confirm)
 
 module.exports = router;
