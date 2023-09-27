@@ -12,8 +12,9 @@ const path = require("path");
 const sharp = require("sharp");
 const {Storage} = require("@google-cloud/storage");
 
+
 //Initialize Storage
-const storage = new Storage({keyFile: '../database/key.json'});
+const storage = new Storage({keyFile: '../database/key-cloud.json'});
 
 // ENV Variables
 const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
@@ -32,6 +33,7 @@ const upload = async (req, res) =>{
         // Optimizing the img
         const {buffer} = req.file;
         const fileToUpload = await sharp(buffer)
+            .resize(1280, null, {kernel: "nearest"})
             .webp({quality:20})
             .toBuffer();
 

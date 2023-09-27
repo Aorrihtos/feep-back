@@ -184,6 +184,7 @@ const upload = (req, res) =>{
             message: `Extension ${extension} not allowed.`
         });
     }
+
     //Naming the new image
     const ref = `${req.user.username}-${req.file.originalname}.webp`;
     const urlToImage = `${GCLOUD_STORAGE_BASEPATH}/${ref}`;
@@ -204,6 +205,7 @@ const upload = (req, res) =>{
             // Optimizing the img
             const {buffer} = req.file;
             const fileToUpload = await sharp(buffer)
+                .resize(800, null, {kernel: "nearest"})
                 .webp({quality:20})
                 .toBuffer();
 
