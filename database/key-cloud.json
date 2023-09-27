@@ -1,1 +1,13 @@
-{"web":{"client_id":"1096169259811-1mpids6hj7p192n5epe3q2ipqdd533ga.apps.googleusercontent.com","project_id":"tensile-cable-396618","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["https://coral-app-5t5n2.ondigitalocean.app","https://feep-social.es"],"javascript_origins":["https://feep-social.es","https://coral-app-5t5n2.ondigitalocean.app"]}}
+{
+  "type": "service_account",
+  "project_id": "tensile-cable-396618",
+  "private_key_id": "cae7ecd553f1eaa7e4ea74121897d481f8a9ba90",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDZ8UVfAKojzxg\n4lsWlmyx9UpQVwuYzz2Ayi23/crdtlwJKa6Ptk+Jkl6oUl5kqDw5TjsnF72c8+hH\nQ4Qa3EQ/hymnAhnOt517+fxSYa0YxaJyANtkPU3hemaVP6sg6i6mQ22UZPJplIlD\nm/TxE0DrEra1wpS0C+TSJK8Z4GJF3GOD2iJIyFuMvIIakLrLIMjDH76R1de5tHlA\npJgPD0DAulfQWg/USimvTVdAl/5HwmFdIIPs1FUJx/8G3yL/fW3/hMsIclkCKYKA\nICZ0ZiBnOnAak0dBK8c2feH655BtKKEIz9G6KyYux0YCR+ICbibujFfHxBGz5Lzw\n7X9crhm1AgMBAAECggEAEf4TmSNWkVPDEP62uXE3Z/l4ksY5FKR8esfjBs6RJ/Ib\nLmLOpn/4eefm3GPdOjJ9fR9VdgeLF5Ej4a/3UYvXouvcq3qXir/AegJuN92zlRTZ\nnNq0WNoGOk1Ndc+rf7fgfMG3rNLQuWUKcJXDK5GEyEBsX3cfvyZbNvhWwTC2i80S\nkbMjbsLhY1zSNGlb9n4EbiV7gve2dEIkqdm6D76NPHfHUQkK95VnbQreIRgT0vIK\n3Ix1irh5HXLhts2HgHFwZN8Lm6RpyBcMRhvCvAFlhT/a06xtompHThlvqBmQoPYK\nHmZ7bE3rERUmSQzCmQmS6xQN/Pbu2x3fWUwv0PkqsQKBgQDiNsHQStcLI6VQKQSq\nmj35wJFK+6SO73Kbrw2g1Fk9rgP7slcyhOh895vIJ+s/FM0N9YCdEgRXhxiSOHpy\nf5PSaqG7I/t3tUw0euzGAVjal1TI5CjPt2+QGZuVVA0za5/U5iZagXL27bz00m+E\nDNkUOUd+Okt8/Z/+SCgWYvMr7QKBgQDdIoPVyE6Yaaz3OHmoOBlC8cLAhb6DUD7Q\ne0eubuLaiY8bUwuqx3xbsUEL7UntNJ5TMFWNVcubQ0NuWMmD74zrxMN6rwgzz/U8\nqawTe7jD+JtjkXyW7/+4wwspsaPiAArctDs3bURKiCcgteC9P9YGL9nANEfS1oV2\nTNF+5rm76QKBgBnabDgj9YO+ZSxOI8xjqGWczn4lWF9FmnGUhhg1bKWR976SWUja\ny79MhS9Q8J/a/rxzrGlHH9vpArPjZIslbX2E1ksPB7RcsgLlcZ4HlWIWHYiAGvHy\nYvuzEYb1fjS8Ph4U15lMZhk2fnv0eO48kaqwCS2x9+KnEdv73yj/0g7ZAoGAHqhw\nWq1AqETOZCACTd4pMmzOMV7ZgN8ZNlJBJ9/bt6ymmIU08uJhTV0PxZWKUEahRKtI\n0SV56vayXJQWrCIECZPn/hRSMMy+FUD4yGK4xQKsmGtNOKfhbj4sSAWG0QhseRjL\ntO2DMEocEp7kn5hAFe+AYvNcmdCABFy2Fr/qNDECgYEAoZZxvFMW2H2vCXl7uaJh\nJ7YkcK4KlCM+Vu0B5p/g6BEnR8EKKBo5vFk987llYowQuS2FPNQWJtHJtLzFX3jl\nlp/dFdeFf8JW3arkLQ4DIR4YCROpOeu6Pn1T4Lw5pyZL1dIl/vJiN4lVCvGLSxZm\n+QMCAw3vqrT6RMdUQVqM9oo=\n-----END PRIVATE KEY-----\n",
+  "client_email": "feep-838@tensile-cable-396618.iam.gserviceaccount.com",
+  "client_id": "118422148471277783341",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/feep-838%40tensile-cable-396618.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
