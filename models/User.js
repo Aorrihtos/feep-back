@@ -30,7 +30,7 @@ const UserSchema = Schema({
     },
     summary: {
         type: String,
-        maxlength: 25
+        maxlength: 20
     },
     description: {
         type: String,

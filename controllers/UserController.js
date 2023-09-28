@@ -620,6 +620,11 @@ const contact = (req,res)=>{
 const description = (req, res) =>{
     const id = req.user.id;
     const data = req.body;
+    if(data.summary > 20 || data.description > 250)
+        return res.status(400).json({
+            status: "error",
+            message: "Summary or description are overpassing the maximum characters"
+        });
     User.findByIdAndUpdate(id, data, {new: true})
         .then(user => {
             if(!user) return res.status(404).json({

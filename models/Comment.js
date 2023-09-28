@@ -13,7 +13,8 @@ const CommentSchema = Schema({
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        maxLength: 250
     },
     created_at: {
         type: Date,

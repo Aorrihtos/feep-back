@@ -22,9 +22,9 @@ const ITEMS_PER_PAGE = process.env.ITEMS_PER_PAGE;
 const upload = async (req, res) =>{
     const userId = req.user.id;
     const data = req.body;
-    if(!data.content) return res.status(400).json({
+    if(!data.content || data.content.length > 500) return res.status(400).json({
         status: "error",
-        message: "No content was provided"
+        message: "No content was provided or content too long. Maximum 500 characters"
     });
     let attached_file = req.file
         ? `${req.user.id}-${Date.now()}-${req.file.originalname}`

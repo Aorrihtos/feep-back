@@ -3,10 +3,11 @@ const Comment = require("../models/Comment");
 const send = (req, res) => {
     const post_id = req.params.postId;
     const data = req.body;
-    if(!data.content) return res.status(400).json({
-        status: "error",
-        message: "No data was provided"
-    });
+    if(!data.content || data.content.length > 250)
+        return res.status(400).json({
+            status: "error",
+            message: "No data was provided or comment is too long. Maximum 250 characters"
+        });
 
     const comment = new Comment({
         user_id: req.user.id,
