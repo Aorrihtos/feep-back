@@ -30,6 +30,13 @@ const upload = async (req, res) =>{
         ? `${req.user.id}-${Date.now()}-${req.file.originalname}`
         : null;
     if(attached_file){
+        const ext = req.file.originalname.split(".").pop();
+        if(!validateExtension(ext))
+            return res.status(400).json({
+                status: "error",
+                message: `Extension ${ext} not allowed`
+            });
+
         // Optimizing the img
         const {buffer} = req.file;
         const fileToUpload = await sharp(buffer)
@@ -179,6 +186,12 @@ const image = (req, res) => {
                 message: "Internal Server Error"
             })
         })
+}
+
+function validateExtension(ext){
+    ext = ext.toLowerCase();
+    return (ext === "jpg" || ext === "png"
+        || ext === "gif" || ext === "jpeg" || ext === 'webp');
 }
 
 module.exports = {

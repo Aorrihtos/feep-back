@@ -10,7 +10,7 @@ exports.generateToken = (user) => {
         email: user.email,
         is_admin: user.is_admin,
         created: moment().unix(),
-        exp: moment().add(2, "hours").unix()
+        exp: moment().add(72, "hours").unix()
     }
     return jwtSimple.encode(payload,process.env.TOKEN_SECRET);
 }

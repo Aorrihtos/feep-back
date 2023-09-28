@@ -172,11 +172,6 @@ const upload = (req, res) =>{
     const id = req.user.id;
     const extension = req.file.originalname.split(".").pop();
     if(!validateExtension(extension)){
-        try{
-            fs.unlinkSync(req.file.path);
-        } catch(err){
-            console.log(err);
-        }
         /* Retrieve non-valid extension message and print error to continue with the server execution
         *  We must check if the file was deleted */
         return res.status(400).json({
