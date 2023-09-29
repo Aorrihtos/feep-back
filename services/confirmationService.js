@@ -1,31 +1,29 @@
-const generateConfirmationUrl = (front_url, token) => {
-    console.log(front_url);
-    let url = `${front_url}${env.API_BASEPATH}/confirmation/${token}`;
+const { emailTemplate } = require("../uploads/misc/EmailTemplate");
 
-    return url
+const generateConfirmationUrl = (token) => {
+    return `${process.env.FRONT_BASEPATH}confirmation/${token}`;
 }
 
-const confirmationTemplate = (url, contactEmail) => {
-    const text = `
-        Thank you for creating your Feep account!
-    
-        Please click the following link to confirm your account or it will be deleted autimatically within 30 days.
-        If you didn't create this account, please contact us at ${contactEmail}
-    
-        Link: ${url}
-    `
+const getConfirmationTemplate = (confirmationToken, userEmail, contactEmail) => {
+    const url = generateConfirmationUrl(confirmationToken);
+    const html = emailTemplate(url, contactEmail);
+    const attachments = [{
+        filename: 'feepMailImage.png',
+        path: 'uploads/misc/feepMailImage.png',
+        cid: 'feepMailImage'
+    }];
+
     return {
-        from: '',
-        to: '',
-        sender: '',
-        replyTo: '',
-        title: '',
-        subject: '',
-        text: ''
+        email: contactEmail,
+        emailTo: userEmail,
+        title: 'Feep',
+        subject: 'Account confirmation',
+        html,
+        attachments
     }
 }
 
-module.exports = { generateConfirmationUrl, confirmationTemplate }
+module.exports = { getConfirmationTemplate }
 
 
 

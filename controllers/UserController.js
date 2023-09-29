@@ -14,7 +14,8 @@ const { Storage } = require("@google-cloud/storage");
 const { generateToken } = require("../services/jwt")
 const { validateUser, cleanUser } = require("../helpers/UserHelper");
 const { sendEmail } = require("../services/smpt");
-const { generateConfirmationUrl } = require("../services/confirmationService");
+const { getConfirmationTemplate } = require("../services/confirmationService");
+const { addDays } = require("../services/rankService");
 
 
 // ENV Variables
@@ -51,23 +52,28 @@ const register = async (req, res) => {
 
     data.password = bc.hashSync(data.password, SALT);
     data.confirmationToke = confirmationToken;
-    data.expirationDate = Date.today().add(30).days();
+    data.expirationDate = addDays(30);
+
     const newUser = new User(data);
+    // Generar url de confirmación -> Enviar mail con url de confirmación
+    try {
+        let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com");
+        sendEmail(emailData);
+    } catch (e) {
+        console.error(e); return;
+    }
     newUser.save()
         .then(async user => {
             // We also create his register in rank collection
             const rank = new Rank({ user_id: user._id });
             await rank.save();
             const token = generateToken(user);
+
             return res.status(200).json({
                 status: "success",
                 user: cleanUser(user),
                 token
             })
-
-            // Generar url de confirmación -> Enviar mail con url de confirmación
-
-            let message = confirmationTemplate(generateConfirmationUrl(req.url, confirmationToken), "sergioferrerept@gmail.com");
 
         })
         .catch(err => {
@@ -96,12 +102,13 @@ const confirm = (req, res) => {
                 status: "error",
                 message: "User not found"
             });
-            if (!bc.compareSync(data.token, user.token)) {
+            if (!bc.compareSync(token, user.confirmationToken)) {
                 return res.status(404).json({
                     status: "error",
                     message: "Invalid confirmation token"
                 })
             }
+            //TODO: Borrar el token del usuario
             return res.status(200).json({
                 status: "success"
             })
@@ -216,7 +223,6 @@ const getProfilePic = (req, res) => {
 // Auth required
 const upload = (req, res) => {
     //TODO: PORFAVOR SERGIO ARREGLA QUE NO SE CAMBIE EL NOMBRE EN LA BASE DE DATOS SI SE PRODUCE UN ERROR
-
     const id = req.user.id;
     const extension = req.file.originalname.split(".").pop();
     if (!validateExtension(extension)) {
