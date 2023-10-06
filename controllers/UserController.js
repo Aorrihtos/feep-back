@@ -548,14 +548,14 @@ const feed = async (req, res) =>{
 }
 
 const searcher = (req, res)=>{
-    const search = req.query.user;
+    const search = req.query.user.toLowerCase();
     const page = req.query.page
         ? parseInt(req.query.page)
         : 1;
     User.find({$or:[
-            {username: {$regex: '.*' + search + '.*'}},
-            {name: {$regex: '.*' + search + '.*'}},
-            {surname: {$regex: '.*' + search + '.*'}}
+            {username: {$regex: '.*' + search + '.*', $options: 'i'}},
+            {name: {$regex: '.*' + search + '.*', $options: 'i'}},
+            {surname: {$regex: '.*' + search + '.*', $options: 'i'}}
         ], $and: [{_id: {$ne: req.user.id}}]})
         .select("-password -email -is_admin -__v")
         .sort("-views created_at")
