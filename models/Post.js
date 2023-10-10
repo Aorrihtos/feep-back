@@ -8,7 +8,7 @@ const PostSchema = Schema({
     },
     content: {
         type: String,
-        required: true
+        required: false
     },
     attached_file: String,
     created_at: {
