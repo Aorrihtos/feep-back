@@ -268,5 +268,6 @@ router.delete("/remove/:id", auth, PostController.remove);
  */
 router.get("/detail/:id", auth, PostController.detail);
 router.get("/image/:id", auth, PostController.image);
+router.get("/comments/:id", auth, PostController.getComments);
 
 module.exports = router;
