@@ -163,6 +163,43 @@ const detail = (req, res) => {
         })
 }
 
+const getComments = (req, res) => {
+    const id = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+
+    Comment.find({post_id: id})
+        .select("-__v")
+        .sort("-created_at")
+        .paginate(page, ITEMS_PER_PAGE)
+        .populate("user_id", "_id username profile_pic")
+        .then(async comments => {
+
+            const total_items = await Comment.find({post_id: id}).count();
+            for await (let c of comments){
+                const index = comments.indexOf(c);
+                c = c.toObject();
+                c.likes = await Like.find({comment_id: c._id}).count();
+                comments[index] = c;
+            }
+            return res.status(200).json({
+                status: "success",
+                comments,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total_items/ITEMS_PER_PAGE),
+                    total_items,
+                    items_per_page: parseInt(ITEMS_PER_PAGE)
+                }
+            });
+        })
+        .catch(err =>{
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        })
+}
+
 const image = (req, res) => {
     const id = req.params.id;
     Post.findById(id).exec()
@@ -199,5 +236,6 @@ module.exports = {
     upload,
     remove,
     detail,
-    image
+    image,
+    getComments
 }
