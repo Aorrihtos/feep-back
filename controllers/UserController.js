@@ -411,11 +411,20 @@ const getPosts = async (req, res) =>{
         : 1;
 
     // Check if is in block list
-    const blocked = await Block.findOne({user_id: userId, blocked_id: req.user.id}).exec();
-    if(blocked) return res.status(403).json({
-        status: "error",
-        message: "You have been blocked by this user"
-    });
+    const blocked = await Block.find({$or: [
+        {user_id: userId, blocked_id: req.user.id},
+        {user_id: req.user.id, blocked_id:userId}]}).exec();
+
+    if(blocked.length > 0){
+        const message = blocked.findIndex(b => b.blocked_id == req.user.id) >= 0
+            ? "You have been blocked by this user"
+            : "You have blocked this user";
+
+        return res.status(403).json({
+            status: "error",
+            message
+        });
+    }
 
     Post.find({user_id: userId})
         .select("-__v")
