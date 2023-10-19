@@ -163,11 +163,15 @@ const detail = (req, res) => {
         })
 }
 
-const getComments = (req, res) => {
+const getComments = async (req, res) => {
     const id = req.params.id;
     const page = parseInt(req.query.page) || 1;
 
-    Comment.find({post_id: id})
+    const blocked_array = (await Block.find({user_id: req.user.id})
+        .select({blocked_id: 1, _id: 0})
+        .exec()).map(object => object.blocked_id);
+
+    Comment.find({post_id: id, user_id: {$nin: blocked_array}})
         .select("-__v")
         .sort("-created_at")
         .paginate(page, ITEMS_PER_PAGE)
