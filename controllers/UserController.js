@@ -5,6 +5,7 @@ const Like = require("../models/Like");
 const Comment = require("../models/Comment");
 const Block = require("../models/Block");
 const Rank = require("../models/Rank");
+const Notification = require("../models/Notification");
 const bc = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
@@ -691,6 +692,36 @@ const comments_liked = (req, res)=> {
         })
 }
 
+const getNotifications = (req, res)=>{
+    const id = req.user.id;
+    let page = parseInt(req.query.page) || 1;
+    Notification.find({$and: [{destinyUser: id},{loggedId: {$ne: id}}]})
+        .select("loggedUsername userProfilePic event title text link created_at")
+        .sort("-created_at")
+        .paginate(page, ITEMS_PER_PAGE)
+        .then(async notifications =>{
+            const total_items = await Notification.find({$and: [{destinyUser: id},{loggedId: {$ne: id}}]}).count();
+            return res.status(200).json({
+                status: "success",
+                notifications,
+                pagination: {
+                    page,
+                    total_pages: Math.ceil(total_items / ITEMS_PER_PAGE),
+                    total_items,
+                    items_per_page: ITEMS_PER_PAGE
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        }
+    );
+}
+
 function validateExtension(ext){
     ext = ext.toLowerCase();
     return (ext === "jpg" || ext === "png"
@@ -714,5 +745,6 @@ module.exports = {
     contact,
     description,
     posts_liked,
-    comments_liked
+    comments_liked,
+    getNotifications
 }
