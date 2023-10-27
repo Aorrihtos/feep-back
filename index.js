@@ -85,16 +85,51 @@ io.on('connection', (socket)=>{
         manageNotification(msg.payload, 'likedPost');
     });
 
+    socket.on('unlikedPost', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            destinyUser: msg.payload.destinyUser,
+            event: 'likedPost'
+        }).exec();
+    });
+
     socket.on('likedComment', (msg)=>{
         manageNotification(msg.payload, 'likedComment');
+    });
+
+    socket.on('unlikedComment', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            destinyUser: msg.payload.destinyUser,
+            event: 'likedComment',
+            idComment: msg.payload.idComment
+        }).exec();
     });
 
     socket.on('sendComment', (msg)=>{
         manageNotification(msg.payload, 'sendComment');
     });
 
+    socket.on('deletedComment', (msg)=>{
+        console.log("DELETED: " + msg.payload.idComment + " " + msg.payload.loggedId + " " + msg.payload.destinyUser)
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            idPost: msg.payload.idPost,
+            event: 'sendComment',
+            idComment: msg.payload.idComment
+        }).exec();
+    });
+
     socket.on('followed', (msg)=>{
         manageNotification(msg.payload, 'followed');
+    });
+
+    socket.on('unfollowed', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            destinyUser: msg.payload.destinyUser,
+            event: 'followed'
+        }).exec();
     });
 });
 
