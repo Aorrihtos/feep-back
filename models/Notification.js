@@ -32,7 +32,7 @@ const NotificationSchema = Schema({
     },
     link: String,
     created_at: Date,
-    is_sent: {
+    is_read: {
         type: Boolean,
         default: false
     }

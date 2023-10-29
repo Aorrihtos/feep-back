@@ -15,6 +15,7 @@ const likeRoutes = require("./routes/LikeRoutes");
 const commentRoutes = require("./routes/CommentRoutes");
 const blockRoutes = require("./routes/BlockRoutes");
 const rankRoutes = require("./routes/RankRoutes");
+const notificationRoutes = require("./routes/NotificationRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -33,6 +34,7 @@ app.use(`${API_BASEPATH}/like`, likeRoutes);
 app.use(`${API_BASEPATH}/comment`, commentRoutes);
 app.use(`${API_BASEPATH}/block`, blockRoutes);
 app.use(`${API_BASEPATH}/rank`, rankRoutes);
+app.use(`${API_BASEPATH}/notifications`, notificationRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
@@ -59,15 +61,17 @@ io.on('connection', (socket)=>{
     console.log("a user has connected")
 
     const id = JSON.parse(socket.handshake.query.payload.toString())._id;
-    console.log(id);
-    Notification.find({user_id: id})
+    console.log(id)
+
+    // Send pendent notifications (not readed)
+    Notification.find({destinyUser: id, is_read: false})
+        .count()
         .then(notifications => {
-            if(notifications.length > 0){
-                notifications.forEach(n => socket.emit("message", n))
-            }
+                socket.emit("counter", notifications);
         })
         .catch(e => console.log(e))
 
+    // Adding the socket to the userArray
     if(connectedUsers.findIndex(user => user.id == id) < 0){
         connectedUsers.push({
             id,
@@ -75,6 +79,7 @@ io.on('connection', (socket)=>{
         });
     }
 
+    // Event triggers
     socket.on('disconnect', ()=>{
         console.log("a User has disconnected");
         const index = connectedUsers.findIndex(user => user.id == id);
@@ -88,8 +93,9 @@ io.on('connection', (socket)=>{
     socket.on('unlikedPost', (msg)=>{
         Notification.findOneAndDelete({
             loggedId: msg.payload.loggedId,
-            destinyUser: msg.payload.destinyUser,
-            event: 'likedPost'
+            idPost: msg.payload.idPost,
+            event: 'likedPost',
+            is_read: false
         }).exec();
     });
 
@@ -102,7 +108,8 @@ io.on('connection', (socket)=>{
             loggedId: msg.payload.loggedId,
             destinyUser: msg.payload.destinyUser,
             event: 'likedComment',
-            idComment: msg.payload.idComment
+            idComment: msg.payload.idComment,
+            is_read: false
         }).exec();
     });
 
@@ -116,7 +123,8 @@ io.on('connection', (socket)=>{
             loggedId: msg.payload.loggedId,
             idPost: msg.payload.idPost,
             event: 'sendComment',
-            idComment: msg.payload.idComment
+            idComment: msg.payload.idComment,
+            is_read: false
         }).exec();
     });
 
@@ -128,7 +136,8 @@ io.on('connection', (socket)=>{
         Notification.findOneAndDelete({
             loggedId: msg.payload.loggedId,
             destinyUser: msg.payload.destinyUser,
-            event: 'followed'
+            event: 'followed',
+            is_read: false
         }).exec();
     });
 });
@@ -143,7 +152,6 @@ const manageNotification = (payload, event) =>{
     const destination = connectedUsers.find(u => u.id == payload.destinyUser);
     if(destination){
         destination.socket.emit("message", notifToSave);
-        notifToSave.is_sent = true;
     }
     console.log(notifToSave);
     notifToSave.save();
