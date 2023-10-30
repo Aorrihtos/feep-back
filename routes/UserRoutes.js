@@ -3,16 +3,6 @@ const UserController = require("../controllers/UserController");
 const multer = require("multer");
 const router = express.Router();
 
-// Multer config
-// const storage = multer.diskStorage({
-//     destination: (req, file, cb) =>{
-//         cb(null,"./uploads/profiles")
-//     },
-//     filename: (req, file, cb) =>{
-//         cb(null, `${req.user.username}-${file.originalname}.webp`)
-//     }
-// });
-
 // Middlewares
 const auth = require("../middlewares/auth");
 const storage = multer.memoryStorage();
@@ -832,5 +822,7 @@ router.post("/description", auth, UserController.description);
 router.get("/liked-posts", auth, UserController.posts_liked);
 
 router.get("/liked-comments", auth, UserController.comments_liked);
+
+router.get("/notifications", auth, UserController.getNotifications);
 
 module.exports = router;

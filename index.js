@@ -5,6 +5,7 @@ require("dotenv").config();
 const app = express();
 require("./services/rankService"); // CRONJOB
 const {swaggerDocs} = require("./swagger") // SWAGGER
+const Notification = require("./models/Notification");
 
 // Importing Routes
 const userRoutes = require("./routes/UserRoutes");
@@ -14,6 +15,7 @@ const likeRoutes = require("./routes/LikeRoutes");
 const commentRoutes = require("./routes/CommentRoutes");
 const blockRoutes = require("./routes/BlockRoutes");
 const rankRoutes = require("./routes/RankRoutes");
+const notificationRoutes = require("./routes/NotificationRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -32,6 +34,7 @@ app.use(`${API_BASEPATH}/like`, likeRoutes);
 app.use(`${API_BASEPATH}/comment`, commentRoutes);
 app.use(`${API_BASEPATH}/block`, blockRoutes);
 app.use(`${API_BASEPATH}/rank`, rankRoutes);
+app.use(`${API_BASEPATH}/notifications`, notificationRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
@@ -40,8 +43,122 @@ app.get("/", (req, res)=>{
     });
 });
 
+
+// WebSockets with Socket.io
+const {connectedUsers} = require('./helpers/connectedUsers');
+const {createServer} = require("node:http");
+const server = createServer(app);
+const io = require("socket.io")(server, {
+    cors: {
+        origins: ['http://localhost:4200']
+    },
+    connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000
+    }
+})
+io.on('connection', (socket)=>{
+
+    console.log("a user has connected")
+
+    const id = JSON.parse(socket.handshake.query.payload.toString())._id;
+    console.log(id)
+
+    // Send pendent notifications (not readed)
+    Notification.find({destinyUser: id, is_read: false})
+        .count()
+        .then(notifications => {
+                socket.emit("counter", notifications);
+        })
+        .catch(e => console.log(e))
+
+    // Adding the socket to the userArray
+    if(connectedUsers.findIndex(user => user.id == id) < 0){
+        connectedUsers.push({
+            id,
+            socket
+        });
+    }
+
+    // Event triggers
+    socket.on('disconnect', ()=>{
+        console.log("a User has disconnected");
+        const index = connectedUsers.findIndex(user => user.id == id);
+        connectedUsers.splice(index, 1);
+    });
+
+    socket.on('likedPost', (msg)=>{
+        manageNotification(msg.payload, 'likedPost');
+    });
+
+    socket.on('unlikedPost', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            idPost: msg.payload.idPost,
+            event: 'likedPost',
+            is_read: false
+        }).exec();
+    });
+
+    socket.on('likedComment', (msg)=>{
+        manageNotification(msg.payload, 'likedComment');
+    });
+
+    socket.on('unlikedComment', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            destinyUser: msg.payload.destinyUser,
+            event: 'likedComment',
+            idComment: msg.payload.idComment,
+            is_read: false
+        }).exec();
+    });
+
+    socket.on('sendComment', (msg)=>{
+        manageNotification(msg.payload, 'sendComment');
+    });
+
+    socket.on('deletedComment', (msg)=>{
+        console.log("DELETED: " + msg.payload.idComment + " " + msg.payload.loggedId + " " + msg.payload.destinyUser)
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            idPost: msg.payload.idPost,
+            event: 'sendComment',
+            idComment: msg.payload.idComment,
+            is_read: false
+        }).exec();
+    });
+
+    socket.on('followed', (msg)=>{
+        manageNotification(msg.payload, 'followed');
+    });
+
+    socket.on('unfollowed', (msg)=>{
+        Notification.findOneAndDelete({
+            loggedId: msg.payload.loggedId,
+            destinyUser: msg.payload.destinyUser,
+            event: 'followed',
+            is_read: false
+        }).exec();
+    });
+});
+
+const manageNotification = (payload, event) =>{
+    const notifToSave = new Notification({...payload, event});
+    if(notifToSave.text.trim() === ""){
+        console.log("entro")
+        notifToSave.text = "📷 Image"
+    }
+
+    const destination = connectedUsers.find(u => u.id == payload.destinyUser);
+    if(destination){
+        destination.socket.emit("message", notifToSave);
+    }
+    console.log(notifToSave);
+    notifToSave.save();
+}
+
 // Initialize the server
-app.listen(process.env.PORT, ()=>{
+server.listen(process.env.PORT, ()=>{
     console.log(`Server listening on port ${process.env.PORT}`);
     swaggerDocs(app, process.env.PORT);
 })

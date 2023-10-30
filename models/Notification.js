@@ -1,20 +1,38 @@
 const {Schema, model} = require("mongoose");
 
 const NotificationSchema = Schema({
-    user_id: {
+    loggedId: {
         type: Schema.ObjectId,
         ref: "User",
         required: true
     },
-    message: {
+    loggedUsername: String,
+    userProfilePic: String,
+    event: {
         type: String,
         required: true
     },
-    created_at: {
-        type: Date,
-        default: Date.now()
+    title: {
+        type: String,
+        required: true
     },
-    read: {
+    text: String,
+    destinyUser: {
+        type: Schema.ObjectId,
+        ref: "User",
+        required: true
+    },
+    idPost: {
+        type: Schema.ObjectId,
+        ref: "Post"
+    },
+    idComment: {
+        type: Schema.ObjectId,
+        ref: "Comment"
+    },
+    link: String,
+    created_at: Date,
+    is_read: {
         type: Boolean,
         default: false
     }

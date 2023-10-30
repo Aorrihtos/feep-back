@@ -33,7 +33,7 @@ const likeComment = (req,res) => {
         return res.status(200).json({
             status: "success",
             like
-        })
+        });
     })
         .catch(err =>{
             console.log(err);
