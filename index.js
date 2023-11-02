@@ -6,6 +6,20 @@ const app = express();
 require("./services/rankService"); // CRONJOB
 const {swaggerDocs} = require("./swagger") // SWAGGER
 const Notification = require("./models/Notification");
+const User = require("./models/User");
+const Newsletter = require("./models/Newsletter");
+
+// PUSH API & VAPID KEYS
+const webpush = require("web-push");
+const vapidKeys = {
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY
+}
+webpush.setVapidDetails(
+    'mailto:sergioferrerept@gmail.com',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+);
 
 // Importing Routes
 const userRoutes = require("./routes/UserRoutes");
@@ -16,6 +30,7 @@ const commentRoutes = require("./routes/CommentRoutes");
 const blockRoutes = require("./routes/BlockRoutes");
 const rankRoutes = require("./routes/RankRoutes");
 const notificationRoutes = require("./routes/NotificationRoutes");
+const newsletterRoutes = require("./routes/NewsletterRoutes");
 
 // Connect to DB
 connection().then(r => console.log("Connected to Database!"));
@@ -35,6 +50,7 @@ app.use(`${API_BASEPATH}/comment`, commentRoutes);
 app.use(`${API_BASEPATH}/block`, blockRoutes);
 app.use(`${API_BASEPATH}/rank`, rankRoutes);
 app.use(`${API_BASEPATH}/notifications`, notificationRoutes);
+app.use(`${API_BASEPATH}/newsletter`, newsletterRoutes);
 
 // Default Route
 app.get("/", (req, res)=>{
@@ -61,10 +77,20 @@ io.on('connection', (socket)=>{
     console.log("a user has connected")
 
     const id = JSON.parse(socket.handshake.query.payload.toString())._id;
-    console.log(id)
+    let allow_notifications = false;
+
+    // Find if user selected allow push notifications
+    User.findById(id).select("allow_notifications").then(user =>{
+        console.log(user)
+       if(user.allow_notifications === -1){
+           socket.emit("allow", null);
+       } else if (user.allow_notifications === 1){
+           allow_notifications = true;
+       }
+    });
 
     // Send pendent notifications (not readed)
-    Notification.find({destinyUser: id, is_read: false})
+    Notification.find({destinyUser: id, loggedId: {$ne: id}, is_read: false})
         .count()
         .then(notifications => {
                 socket.emit("counter", notifications);
@@ -72,12 +98,10 @@ io.on('connection', (socket)=>{
         .catch(e => console.log(e))
 
     // Adding the socket to the userArray
-    if(connectedUsers.findIndex(user => user.id == id) < 0){
-        connectedUsers.push({
-            id,
-            socket
-        });
-    }
+    connectedUsers.push({
+        id,
+        socket
+    });
 
     // Event triggers
     socket.on('disconnect', ()=>{
@@ -149,11 +173,37 @@ const manageNotification = (payload, event) =>{
         notifToSave.text = "📷 Image"
     }
 
-    const destination = connectedUsers.find(u => u.id == payload.destinyUser);
-    if(destination){
-        destination.socket.emit("message", notifToSave);
+    // Send real-time notification to the user sockets (APP)
+    const sockets = connectedUsers.filter(u => u.id == payload.destinyUser).map(r => r.socket);
+    if(sockets.length > 0){
+        sockets.forEach(s => s.emit("message", notifToSave));
     }
-    console.log(notifToSave);
+
+    // Search if the user allowed notifications to send by Push API (DEVICE)
+    Newsletter.findOne({userId: payload.destinyUser})
+        .select("-_id -userId")
+        .then(sub => {
+            if (sub != null){
+                const notificationPayload = {
+                    "notification": {
+                        "title": payload.title,
+                        "body": payload.text,
+                        "icon": "assets/icons/icon-72x72.png",
+                        "vibrate": [100, 50, 100],
+                        "data": {
+                            "dateOfArrival": Date.now(),
+                            "primaryKey": 1
+                        },
+                        "actions": [{
+                            "action": "explore",
+                            "title": "Go to the site"
+                        }]
+                    }
+                };
+                webpush.sendNotification(sub, JSON.stringify(notificationPayload));
+                console.log("enviado a: " + sub);
+            }
+        });
     notifToSave.save();
 }
 

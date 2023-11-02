@@ -43,6 +43,10 @@ const UserSchema = Schema({
     is_admin: {
         type: Boolean,
         default: false
+    },
+    allow_notifications: {
+        type: Number,
+        default: -1 // {-1: Not selected, 0: Not allowed; 1: Allowed}
     }
 })
 
