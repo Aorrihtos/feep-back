@@ -700,7 +700,7 @@ const getNotifications = (req, res)=>{
         .sort("-created_at")
         .paginate(page, ITEMS_PER_PAGE)
         .then(async notifications =>{
-            const total_items = await Notification.find({$and: [{destinyUser: id},{loggedId: {$ne: id}}]}).count();
+            const total_items = await Notification.find({destinyUser: id, loggedId: {$ne: id}}).count();
             return res.status(200).json({
                 status: "success",
                 notifications,
