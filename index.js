@@ -77,17 +77,14 @@ io.on('connection', (socket)=>{
     console.log("a user has connected")
 
     const id = JSON.parse(socket.handshake.query.payload.toString())._id;
-    let allow_notifications = false;
 
     // Find if user selected allow push notifications
-    User.findById(id).select("allow_notifications").then(user =>{
-        console.log(user)
-       if(user.allow_notifications === -1){
-           socket.emit("allow", null);
-       } else if (user.allow_notifications === 1){
-           allow_notifications = true;
-       }
-    });
+    Newsletter.find({userId: id})
+        .select("-_id -userId -__v")
+        .then(subs => {
+            socket.emit("allow", subs);
+        })
+        .catch(err => console.log("Error on find notification permissions"));
 
     // Send pendent notifications (not readed)
     Notification.find({destinyUser: id, loggedId: {$ne: id}, is_read: false})
@@ -111,7 +108,9 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('likedPost', (msg)=>{
-        manageNotification(msg.payload, 'likedPost');
+        if(msg.payload.destinyUser !== msg.payload.loggedId){
+            manageNotification(msg.payload, 'likedPost');
+        }
     });
 
     socket.on('unlikedPost', (msg)=>{
@@ -124,7 +123,9 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('likedComment', (msg)=>{
-        manageNotification(msg.payload, 'likedComment');
+        if(msg.payload.destinyUser !== msg.payload.loggedId){
+            manageNotification(msg.payload, 'likedComment');
+        }
     });
 
     socket.on('unlikedComment', (msg)=>{
@@ -138,7 +139,9 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('sendComment', (msg)=>{
-        manageNotification(msg.payload, 'sendComment');
+        if(msg.payload.destinyUser !== msg.payload.loggedId){
+            manageNotification(msg.payload, 'sendComment');
+        }
     });
 
     socket.on('deletedComment', (msg)=>{
@@ -153,7 +156,9 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('followed', (msg)=>{
-        manageNotification(msg.payload, 'followed');
+        if(msg.payload.destinyUser !== msg.payload.loggedId){
+            manageNotification(msg.payload, 'followed');
+        }
     });
 
     socket.on('unfollowed', (msg)=>{
@@ -180,10 +185,10 @@ const manageNotification = (payload, event) =>{
     }
 
     // Search if the user allowed notifications to send by Push API (DEVICE)
-    Newsletter.findOne({userId: payload.destinyUser})
+    Newsletter.find({userId: payload.destinyUser})
         .select("-_id -userId")
-        .then(sub => {
-            if (sub != null){
+        .then(subs => {
+            if (subs.length > 0){
                 const notificationPayload = {
                     "notification": {
                         "title": payload.title,
@@ -200,8 +205,9 @@ const manageNotification = (payload, event) =>{
                         }]
                     }
                 };
-                webpush.sendNotification(sub, JSON.stringify(notificationPayload));
-                console.log("enviado a: " + sub);
+                subs.forEach(sub =>{
+                    webpush.sendNotification(sub, JSON.stringify(notificationPayload));
+                });
             }
         });
     notifToSave.save();

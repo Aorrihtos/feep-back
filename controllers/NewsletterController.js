@@ -13,8 +13,7 @@ const addSubscription = (req, res) =>{
 
     const subToSave = new Newsletter(subsWithUserId);
     subToSave.save()
-        .then(async newsletter => {
-            await User.findByIdAndUpdate(userId, {allow_notifications: 1}).exec();
+        .then(newsletter => {
             return res.status(200).json({
                 status: "success",
                 newsletter
