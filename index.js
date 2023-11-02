@@ -194,15 +194,18 @@ const manageNotification = (payload, event) =>{
                         "title": payload.title,
                         "body": payload.text,
                         "icon": "assets/icons/icon-72x72.png",
+                        "badge": payload.userProfilePic,
                         "vibrate": [100, 50, 100],
+                        "actions": [
+                            {"action": "default", "title": "Click to visit the page!"}
+                        ],
                         "data": {
                             "dateOfArrival": Date.now(),
-                            "primaryKey": 1
-                        },
-                        "actions": [{
-                            "action": "explore",
-                            "title": "Go to the site"
-                        }]
+                            "primaryKey": 1,
+                            "onActionClick": {
+                                "default": {"operation": "openWindow", "url": payload.link}
+                            }
+                        }
                     }
                 };
                 subs.forEach(sub =>{
