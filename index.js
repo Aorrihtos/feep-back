@@ -194,7 +194,7 @@ const manageNotification = (payload, event) =>{
                         "title": payload.title,
                         "body": payload.text,
                         "icon": payload.userProfilePic,
-                        "badge": 'https://storage.googleapis.com/feep/icons/icon-72x72.png',
+                        "badge": 'https://storage.googleapis.com/feep/icons/iconSheep.png',
                         "vibrate": [100, 50, 100],
                         "actions": [
                             {"action": "default", "title": "Click view more details!"}
@@ -208,9 +208,13 @@ const manageNotification = (payload, event) =>{
                         }
                     }
                 };
-                subs.forEach(sub =>{
-                    webpush.sendNotification(sub, JSON.stringify(notificationPayload));
-                });
+                try{
+                    subs.forEach(sub =>{
+                        webpush.sendNotification(sub, JSON.stringify(notificationPayload));
+                    });
+                } catch (err){
+                    console.log(err)
+                }
             }
         });
     notifToSave.save();
