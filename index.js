@@ -194,11 +194,10 @@ const manageNotification = (payload, event) =>{
                         "title": payload.title,
                         "body": payload.text,
                         "icon": payload.userProfilePic,
-                        "image": payload.userProfilePic,
-                        "badge": './assets/icons/iconSheep.png',
+                        "badge": 'https://storage.googleapis.com/feep/icons/icon-72x72.png',
                         "vibrate": [100, 50, 100],
                         "actions": [
-                            {"action": "default", "title": "Click to visit the page!"}
+                            {"action": "default", "title": "Click view more details!"}
                         ],
                         "data": {
                             "dateOfArrival": Date.now(),
