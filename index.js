@@ -193,8 +193,9 @@ const manageNotification = (payload, event) =>{
                     "notification": {
                         "title": payload.title,
                         "body": payload.text,
-                        "icon": "assets/icons/icon-72x72.png",
-                        "badge": payload.userProfilePic,
+                        "icon": payload.userProfilePic,
+                        "image": payload.userProfilePic,
+                        "badge": './assets/icons/iconSheep.png',
                         "vibrate": [100, 50, 100],
                         "actions": [
                             {"action": "default", "title": "Click to visit the page!"}
