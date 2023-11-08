@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
 const Post = require("../models/Post");
 const Rank = require("../models/Rank");
+
 /*
 * Checks once a day if any user didn't make any post
 * and resets its multiplier rank points bonus

@@ -16,12 +16,14 @@ const sendEmail = (data)=>{
     console.log(data);
     const mailData = {
         from: data.email, // sender address
-        to: 'sergioferrerept@gmail.com', // list of receivers
+        to: data.emailTo || 'sergioferrerept@gmail.com', // list of receivers
         sender: data.email,
         replyTo: data.email,
         title: data.title,
         subject: data.subject,
-        text: data.text
+        text: data.text,
+        html: data.html,
+        attachments: data.attachments
     };
     transporter.sendMail(mailData, function (err, info) {
         if(err) {

@@ -7,13 +7,12 @@ const Block = require("../models/Block");
 const Rank = require("../models/Rank");
 const Notification = require("../models/Notification");
 const bc = require("bcrypt");
-const path = require("path");
-const fs = require("fs");
 const sharp = require("sharp");
 const {Storage} = require("@google-cloud/storage");
 const {generateToken} = require("../services/jwt")
 const {validateUser, cleanUser} = require("../helpers/UserHelper");
 const {sendEmail} = require("../services/smpt");
+const { getConfirmationTemplate, addDays } = require("../services/confirmationService");
 require("mongoose-pagination");
 
 // ENV Variables
@@ -44,8 +43,21 @@ const register = async (req, res) =>{
         message: "The username or email is already registered"
     });
 
+    let confirmationToken = Math.random().toString(36).slice(2, 7);
     data.password = bc.hashSync(data.password, SALT);
+    data.confirmationToken = confirmationToken;
+    data.expirationDate = addDays(30);
+
     const newUser = new User(data);
+
+    // Generar url de confirmación -> Enviar mail con url de confirmación
+    try {
+        let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com", data.username);
+        sendEmail(emailData);
+    } catch (e) {
+        console.error(e); return;
+    }
+
     newUser.save()
         .then(async user =>{
             // We also create his register in rank collection
@@ -54,8 +66,7 @@ const register = async (req, res) =>{
             const token = generateToken(user);
             return res.status(200).json({
                 status: "success",
-                user: cleanUser(user),
-                token
+                user: cleanUser(user)
             })
         })
         .catch(err =>{
@@ -67,6 +78,42 @@ const register = async (req, res) =>{
         });
 }
 
+//Confirmation method
+const confirm = (req, res) => {
+    //has to read the req url, check the code, match code with saved token for the user, if it matches it removes the deletion from the account
+    const data = req.body;
+    const token = req.params.token;
+
+    if (!data.username || !token) return res.status(400).json({
+        status: "error",
+        message: "Something went wrong"
+    });
+    console.log(data.username);
+    console.log(token);
+    User.findOneAndUpdate(
+        {username: data.username, confirmationToken: token},
+        {expirationDate: null, confirmationToken: null},
+        {new: true}
+    ).then(userUpdated =>{
+            if(!userUpdated) return res.status(404).json({
+               status: "error",
+               message: "Invalid confirmation token"
+            });
+            return res.status(200).json({
+                status: "success",
+                userUpdated,
+                token: generateToken(userUpdated)
+            });
+    })
+    .catch(err => {
+        console.log(err);
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error, please, try again later"
+        })
+    });
+}
+
 // Login method
 const login = (req, res) =>{
     const data = req.body;
@@ -75,8 +122,8 @@ const login = (req, res) =>{
         message: "No data was provided"
     });
     User.findOne({$or: [
-            {username: data.username},
-            {email: data.username}
+            {username: data.username, expirationDate: null, confirmationToken: null},
+            {email: data.username, expirationDate: null, confirmationToken: null}
         ]}).exec()
         .then(user =>{
             if(!user) return res.status(404).json({
@@ -746,5 +793,6 @@ module.exports = {
     description,
     posts_liked,
     comments_liked,
-    getNotifications
+    getNotifications,
+    confirm
 }

@@ -825,4 +825,6 @@ router.get("/liked-comments", auth, UserController.comments_liked);
 
 router.get("/notifications", auth, UserController.getNotifications);
 
+router.patch("/confirmation/:token?", UserController.confirm);
+
 module.exports = router;

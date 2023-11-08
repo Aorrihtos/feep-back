@@ -16,6 +16,14 @@ const UserSchema = Schema({
         type: String,
         required: true
     },
+    expirationDate: {
+      type: String,
+      required: false
+    },
+    confirmationToken: {
+      type: String,
+      required: false
+    },
     date: {
         type: String,
         required: true
