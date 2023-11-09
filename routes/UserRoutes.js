@@ -827,4 +827,6 @@ router.get("/notifications", auth, UserController.getNotifications);
 
 router.patch("/confirmation/:token?", UserController.confirm);
 
+router.post("/confirmation/resend", UserController.resendConfirmationEmail);
+
 module.exports = router;

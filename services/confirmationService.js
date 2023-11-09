@@ -1,9 +1,11 @@
 const { emailTemplate } = require("../uploads/misc/EmailTemplate");
+const User = require('../models/User');
+const schedule = require('node-schedule');
 
 const addDays = (days) => {
     let date = new Date(Date.now());
     date.setDate(date.getDate() + days);
-    date = new Date(date.toISOString().split("T").shift());
+    date = date.toISOString().split("T").shift();
     return date;
 }
 
@@ -29,5 +31,15 @@ const getConfirmationTemplate = (confirmationToken, userEmail, contactEmail, use
         attachments
     }
 }
+
+const eraseUnactivatedAccounts = schedule.scheduleJob('0 0 * * *', ()=>{
+    const date = new Date(Date.now());
+    const today = date.toISOString().split("T").shift();
+    User.deleteMany({expirationDate: today}).then(deleted =>{
+        console.log("Number of deleted accounts: " + deleted.deletedCount);
+    });
+});
+
+
 
 module.exports = { getConfirmationTemplate, addDays }

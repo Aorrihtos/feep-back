@@ -55,7 +55,7 @@ const register = async (req, res) =>{
         let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com", data.username);
         sendEmail(emailData);
     } catch (e) {
-        console.error(e); return;
+        console.error(e);
     }
 
     newUser.save()
@@ -112,6 +112,39 @@ const confirm = (req, res) => {
             message: "Internal Server Error, please, try again later"
         })
     });
+}
+
+const resendConfirmationEmail = (req, res)=>{
+    const data = req.body;
+    if(!data.username || !data.username){
+        return res.status(404).json({
+            status: "error",
+            message: "No data was provided"
+        });
+    }
+    let confirmationToken = Math.random().toString(36).slice(2, 7);
+    data.confirmationToken = confirmationToken;
+    User.findOneAndUpdate({username: data.username, email: data.email}, {confirmationToken})
+        .then(user =>{
+            try {
+                let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com", data.username);
+                sendEmail(emailData);
+                return res.status(204).json({});
+            } catch (e) {
+                console.error(e);
+                return res.status(500).json({
+                    status: "error",
+                    message: "Internal Server Error"
+                });
+            }
+        })
+        .catch(err =>{
+            console.log(err);
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            });
+        });
 }
 
 // Login method
@@ -794,5 +827,6 @@ module.exports = {
     posts_liked,
     comments_liked,
     getNotifications,
-    confirm
+    confirm,
+    resendConfirmationEmail
 }
