@@ -13,10 +13,9 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendEmail = (data)=>{
-    console.log(data);
     const mailData = {
         from: data.email, // sender address
-        to: data.emailTo || 'sergioferrerept@gmail.com', // list of receivers
+        to: data.emailTo || 'feepsocial@gmail.com', // list of receivers
         sender: data.email,
         replyTo: data.email,
         title: data.title,
@@ -30,7 +29,6 @@ const sendEmail = (data)=>{
             console.log(err);
             throw new Error("Error sending the mail, please, try again later");
         }
-        console.log(info);
     });
 }
 

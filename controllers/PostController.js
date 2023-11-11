@@ -48,7 +48,6 @@ const upload = async (req, res) =>{
         // Upload to GCLOUD Storage
         await storage.bucket('feep').file(attached_file).save(fileToUpload);
         attached_file = `${process.env.GCLOUD_STORAGE_BASEPATH}/${attached_file}`;
-        console.log(attached_file);
     }
     const post = new Post({user_id: userId, content: data.content, attached_file, created_at: Date.now()});
     post.save().then(async post =>{

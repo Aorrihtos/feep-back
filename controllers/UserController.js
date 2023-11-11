@@ -52,7 +52,7 @@ const register = async (req, res) =>{
 
     // Generar url de confirmación -> Enviar mail con url de confirmación
     try {
-        let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com", data.username);
+        let emailData = getConfirmationTemplate(confirmationToken, data.email, "feepsocial@gmail.com", data.username);
         sendEmail(emailData);
     } catch (e) {
         console.error(e);
@@ -88,8 +88,6 @@ const confirm = (req, res) => {
         status: "error",
         message: "Something went wrong"
     });
-    console.log(data.username);
-    console.log(token);
     User.findOneAndUpdate(
         {username: data.username, confirmationToken: token},
         {expirationDate: null, confirmationToken: null},
@@ -127,7 +125,7 @@ const resendConfirmationEmail = (req, res)=>{
     User.findOneAndUpdate({username: data.username, email: data.email}, {confirmationToken})
         .then(user =>{
             try {
-                let emailData = getConfirmationTemplate(confirmationToken, data.email, "sergioferrerept@gmail.com", data.username);
+                let emailData = getConfirmationTemplate(confirmationToken, data.email, "feepsocial@gmail.com", data.username);
                 sendEmail(emailData);
                 return res.status(204).json({});
             } catch (e) {
@@ -273,7 +271,6 @@ const upload = (req, res) =>{
             // If profile pic is distinct, we're deleting the old one
             if(user.profile_pic !== urlToImage && user.profile_pic !== process.env.DEFAULT_PROFILE_PIC){
                 const oldPicName = user.profile_pic.substring(36);
-                console.log(oldPicName)
                 storage.bucket('feep').file(oldPicName).delete()
                     .then(() => console.log(`Droped ${user.profile_pic} from cloud storage`));
             }

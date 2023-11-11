@@ -8,7 +8,7 @@ module.exports.emailTemplate = (url, contactEmail) => `<!DOCTYPE html>
             <p>Thank you for creating your Feep account!</p>
             <p>Please click the following link to confirm your account or it will be deleted autimatically within 30 days.</p>
             <p>If you didn't create this account, please contact us at ${contactEmail}.</p>
-            <a href="${url}"> <img src="cid:feepMailImage" alt="${url}" width="500" height="250"/> </a>
+            <a href="${url}"> <img src="cid:feepMailImage" alt="${url}" width="400"/> </a>
         </body>
     </html>
 `
