@@ -16,7 +16,7 @@ const vapidKeys = {
     privateKey: process.env.VAPID_PRIVATE_KEY
 }
 webpush.setVapidDetails(
-    'mailto:sergioferrerept@gmail.com',
+    'mailto:feepsocial@gmail.com',
     vapidKeys.publicKey,
     vapidKeys.privateKey
 );
@@ -66,15 +66,13 @@ const {createServer} = require("node:http");
 const server = createServer(app);
 const io = require("socket.io")(server, {
     cors: {
-        origins: ['http://localhost:4200']
+        origins: ['http://localhost:4200', 'https://feep-social.es']
     },
     connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000
     }
 })
 io.on('connection', (socket)=>{
-
-    console.log("a user has connected")
 
     const id = JSON.parse(socket.handshake.query.payload.toString())._id;
 
@@ -102,7 +100,6 @@ io.on('connection', (socket)=>{
 
     // Event triggers
     socket.on('disconnect', ()=>{
-        console.log("a User has disconnected");
         const index = connectedUsers.findIndex(user => user.id == id);
         connectedUsers.splice(index, 1);
     });
@@ -174,7 +171,6 @@ io.on('connection', (socket)=>{
 const manageNotification = (payload, event) =>{
     const notifToSave = new Notification({...payload, event});
     if(notifToSave.text.trim() === ""){
-        console.log("entro")
         notifToSave.text = "📷 Image"
     }
 

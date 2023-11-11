@@ -9,7 +9,6 @@ const addSubscription = (req, res) =>{
     });
 
     const subsWithUserId = {userId, ...subscription};
-    console.log(subsWithUserId);
 
     const subToSave = new Newsletter(subsWithUserId);
     subToSave.save()
