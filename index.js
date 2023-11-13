@@ -182,36 +182,43 @@ const manageNotification = (payload, event) =>{
 
     // Search if the user allowed notifications to send by Push API (DEVICE)
     Newsletter.find({userId: payload.destinyUser})
-        .select("-_id -userId")
+        .select("-_id -userId -__v")
         .then(subs => {
-            if (subs.length > 0){
-                const notificationPayload = {
-                    "notification": {
-                        "title": payload.title,
-                        "body": payload.text,
-                        "icon": payload.userProfilePic,
-                        "badge": 'https://storage.googleapis.com/feep/icons/iconSheep.png',
-                        "vibrate": [100, 50, 100],
-                        "actions": [
-                            {"action": "default", "title": "Click view more details!"}
-                        ],
-                        "data": {
-                            "dateOfArrival": Date.now(),
-                            "primaryKey": 1,
-                            "onActionClick": {
-                                "default": {"operation": "openWindow", "url": payload.link}
-                            }
+            if (subs.length <= 0) return;
+            const notificationPayload = {
+                "notification": {
+                    "title": payload.title,
+                    "body": payload.text,
+                    "icon": payload.userProfilePic,
+                    "badge": 'https://storage.googleapis.com/feep/icons/iconSheep.png',
+                    "vibrate": [100, 50, 100],
+                    "actions": [
+                        {"action": "default", "title": "Click view more details!"}
+                    ],
+                    "data": {
+                        "dateOfArrival": Date.now(),
+                        "primaryKey": 1,
+                        "onActionClick": {
+                            "default": {"operation": "openWindow", "url": payload.link}
                         }
                     }
-                };
-                try{
-                    subs.forEach(sub =>{
-                        webpush.sendNotification(sub, JSON.stringify(notificationPayload));
-                    });
-                } catch (err){
-                    console.log(err)
                 }
-            }
+            };
+            subs.forEach(sub =>{
+                webpush.sendNotification(sub, JSON.stringify(notificationPayload))
+                    .catch(err => {
+                        // We drop the subscription if it's expired or incorrect
+                        if(err.statusCode === 401 || err.statusCode === 404){
+                            Newsletter.findOneAndDelete({
+                              userId: payload.destinyUser,
+                              endpoint: sub.endpoint,
+                              keys: sub.keys
+                            }).then(res => {
+                                console.log(`Push API subscription dropped for user ${res.userId}`)
+                            });
+                        }
+                    });
+            });
         });
     notifToSave.save();
 }
