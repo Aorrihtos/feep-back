@@ -6,20 +6,36 @@ const likePost = (req,res) => {
         user_id: req.user.id,
         post_id
     };
-    const like = new Like(data);
-    like.save().then(like =>{
-        return res.status(200).json({
-            status: "success",
-            like
+    const likeToSave = new Like({...data, created_at: Date.now()});
+    // Check if like is already saved
+    Like.findOne(data)
+        .then(exist => {
+            if(exist) return res.status(400).json({
+                status: "error",
+                message: "Like already stored"
+            });
+
+            likeToSave.save()
+                .then(like =>{
+                    return res.status(200).json({
+                        status: "success",
+                        like
+                    });
+                })
+                .catch(err =>{
+                    console.log(err);
+                    return res.status(500).json({
+                        status: "error",
+                        message: "Internal Server Error"
+                    })
+                });
         })
-    })
-    .catch(err =>{
-        console.log(err);
-        return res.status(500).json({
-            status: "error",
-            message: "Internal Server Error"
-        })
-    })
+        .catch(err => {
+            return res.status(500).json({
+                status: "error",
+                message: "Internal Server Error"
+            })
+        });
 }
 
 const likeComment = (req,res) => {
@@ -28,20 +44,36 @@ const likeComment = (req,res) => {
         user_id: req.user.id,
         comment_id
     };
-    const like = new Like(data);
-    like.save().then(like =>{
-        return res.status(200).json({
-            status: "success",
-            like
-        });
-    })
-        .catch(err =>{
-            console.log(err);
+    const likeToSave = new Like({...data, created_at: Date.now()});
+
+    // Check if like is already stored
+    Like.findOne(data)
+        .then(exist => {
+            if(exist) return res.status(400).json({
+                status: "error",
+                message: "Like already stored"
+            });
+
+            likeToSave.save().then(like =>{
+                return res.status(200).json({
+                    status: "success",
+                    like
+                });
+            })
+            .catch(err =>{
+                console.log(err);
+                return res.status(500).json({
+                    status: "error",
+                    message: "Internal Server Error"
+                })
+            });
+        })
+        .catch(err => {
             return res.status(500).json({
                 status: "error",
                 message: "Internal Server Error"
             })
-        })
+        });
 }
 
 const unlikePost = (req, res) =>{

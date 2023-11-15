@@ -15,7 +15,7 @@ const LikeSchema = Schema({
     },
     created_at: {
         type: Date,
-        default: Date.now()
+        required: true
     }
 });
 
