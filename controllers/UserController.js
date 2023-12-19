@@ -246,7 +246,6 @@ const getProfilePic = (req, res) =>{
 // Uploads a new profile-pic for the logged user
 // Auth required
 const upload = (req, res) =>{
-    //TODO: PORFAVOR SERGIO ARREGLA QUE NO SE CAMBIE EL NOMBRE EN LA BASE DE DATOS SI SE PRODUCE UN ERROR
 
     const id = req.user.id;
     const extension = req.file.originalname.split(".").pop();
@@ -262,7 +261,7 @@ const upload = (req, res) =>{
     //Naming the new image
     const ref = `${req.user.username}-${req.file.originalname}.webp`;
     const urlToImage = `${GCLOUD_STORAGE_BASEPATH}/${ref}`;
-    User.findByIdAndUpdate(id, {profile_pic: urlToImage}).exec()
+    User.findById(id).exec()
         .then(async user =>{
             if(!user) return res.status(404).json({
                 status: "error",
@@ -284,7 +283,7 @@ const upload = (req, res) =>{
 
             // Upload to GCLOUD Storage
             await storage.bucket('feep').file(ref).save(fileToUpload);
-
+            await user.update({profile_pic: urlToImage}).exec();
             return res.status(200).json({
                 status: "success",
                 user: cleanUser(user),

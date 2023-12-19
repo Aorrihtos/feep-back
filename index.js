@@ -59,7 +59,6 @@ app.get("/", (req, res)=>{
     });
 });
 
-
 // WebSockets with Socket.io
 const {connectedUsers} = require('./helpers/connectedUsers');
 const {createServer} = require("node:http");
