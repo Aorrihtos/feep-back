@@ -283,10 +283,11 @@ const upload = (req, res) =>{
 
             // Upload to GCLOUD Storage
             await storage.bucket('feep').file(ref).save(fileToUpload);
-            await user.update({profile_pic: urlToImage}).exec();
+
+            // Updating the registry on db and sending response
+            const userUpdated = await User.findByIdAndUpdate({_id: id}, {profile_pic: urlToImage}, {new: true}).exec()
             return res.status(200).json({
                 status: "success",
-                user: cleanUser(user),
                 profile_pic: `${GCLOUD_STORAGE_BASEPATH}/${ref}`
             })
         })
